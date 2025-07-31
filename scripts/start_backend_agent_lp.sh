@@ -6,7 +6,7 @@ export REPO_NAME="mrsunkwn"
 export GITHUB_TOKEN="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"
 
 # Anzahl der Instanzen
-count=30
+count=1000
 
 # Starte Agenten im Hintergrund
 for ((i=1; i<=count; i++)); do
