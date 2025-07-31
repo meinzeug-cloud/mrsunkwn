@@ -1,389 +1,487 @@
-# Dual-Agent Master Prompt for Parallel Frontend/Backend Development
+# 🚀 Dual-Agent Master Prompt v2.0 - Automatisierte Parallele Entwicklung
 
-## 🚀 System Architecture
+## 🎯 KRITISCHE OPTIMIERUNGEN
 
-### Agent Roles (Phase-Based)
+### Auto-Execution Framework
+```yaml
+PRIMÄRE DIREKTIVE: Bei JEDER Ausführung MUSS die AI:
+1. Code generieren/modifizieren (70% der Zeit)
+2. Issues synchronisieren (20% der Zeit)  
+3. Dokumentation updaten (10% der Zeit)
 
-#### Phase 1: Initial Setup (ONE-TIME)
-- **SETUP_AGENT**: Configures complete dual-agent infrastructure
-  - Creates directory structure
-  - GitHub repository setup
-  - Agent configuration files
-  - Issue management system
-  - **IMPORTANT**: Does NOT take on any specific agent role
+NIEMALS: Nur planen ohne zu coden!
+```
 
-#### Phase 2: Parallel Development (CONTINUOUS)
-- **FRONTEND_AGENT**: UI/UX, client-side logic, API integration
-- **BACKEND_AGENT**: Server logic, database, APIs, services
+## 🏗️ System-Architektur
 
-### Communication Protocol
-- **GitHub Issues** as the primary communication method between agents
-- **Branch-based development**: `feature/frontend-*` and `feature/backend-*`
-- **Automatic issue synchronization** at each sprint
+### Agent-Rollen mit Code-First Ansatz
 
-## 📁 Directory Structure (created by SETUP_AGENT)
+#### SETUP_AGENT (Einmalig)
+- Erstellt VOLLSTÄNDIGE, FUNKTIONSFÄHIGE Boilerplate-Projekte
+- Generiert AUSFÜHRBAREN Starter-Code für beide Seiten
+- Konfiguriert automatische Sync-Mechanismen
+
+#### FRONTEND_AGENT (Kontinuierlich)
+```yaml
+Prioritäten:
+1. CODE SCHREIBEN: Komponenten, Pages, Hooks, Services
+2. TESTEN: Unit & Integration Tests
+3. KOMMUNIZIEREN: Nur wenn API-Änderungen nötig
+```
+
+#### BACKEND_AGENT (Kontinuierlich)
+```yaml
+Prioritäten:
+1. CODE SCHREIBEN: APIs, Models, Controllers, Services
+2. TESTEN: Unit & Integration Tests
+3. KOMMUNIZIEREN: Nur wenn Frontend-Impact vorhanden
+```
+
+## 📁 Erweiterte Verzeichnisstruktur mit Auto-Code
 
 ```
 /
-├── README.md                           # Project concept (MUST already exist)
-├── frontend/                           # Frontend code
+├── README.md
+├── frontend/
 │   ├── src/
-│   ├── components/
-│   ├── pages/
-│   └── package.json
-├── backend/                            # Backend code
+│   │   ├── App.tsx                    # ✅ AUTO-GENERIERT beim Setup
+│   │   ├── components/
+│   │   │   └── [Component].tsx        # ✅ AUTO-GENERIERT bei Bedarf
+│   │   ├── hooks/
+│   │   │   └── useAPI.ts             # ✅ AUTO-GENERIERT für API-Calls
+│   │   └── services/
+│   │       └── apiClient.ts          # ✅ AUTO-GENERIERT mit Axios/Fetch
+│   ├── tests/
+│   └── package.json                   # ✅ AUTO-GENERIERT mit Dependencies
+├── backend/
 │   ├── src/
-│   ├── models/
-│   ├── controllers/
-│   ├── routes/
-│   └── requirements.txt
+│   │   ├── app.py                    # ✅ AUTO-GENERIERT beim Setup
+│   │   ├── models/
+│   │   │   └── [Model].py           # ✅ AUTO-GENERIERT bei Bedarf
+│   │   ├── controllers/
+│   │   │   └── [Controller].py      # ✅ AUTO-GENERIERT bei Bedarf
+│   │   └── routes/
+│   │       └── api.py               # ✅ AUTO-GENERIERT mit Endpoints
+│   ├── tests/
+│   └── requirements.txt              # ✅ AUTO-GENERIERT mit Dependencies
 └── codex/
-    ├── agents/
-    │   ├── frontend/
-    │   │   ├── config.md              # Frontend agent configuration
-    │   │   └── prompt.md              # Frontend agent execution prompt
-    │   ├── backend/
-    │   │   ├── config.md              # Backend agent configuration
-    │   │   └── prompt.md              # Backend agent execution prompt
-    │   └── setup/
-    │       ├── config.md              # Setup agent configuration
-    │       └── validation.md          # Setup validation
-    ├── daten/
-    │   ├── frontend/
-    │   │   ├── roadmap.md
-    │   │   ├── changelog.md
-    │   │   └── status.md
-    │   ├── backend/
-    │   │   ├── roadmap.md
-    │   │   ├── changelog.md
-    │   │   └── status.md
-    │   └── shared/
-    │       ├── project_status.md
-    │       ├── api_contracts.md
-    │       └── integration_tests.md
-    └── github/
-        ├── issue_templates/
-        │   ├── agent_request.md
-        │   ├── api_contract.md
-        │   └── integration.md
-        ├── github_config.py           # GitHub API configuration
-        └── issue_manager.py           # Issue management script
+    ├── automation/
+    │   ├── code_generator.py         # ✅ AUTO-CODE Generator
+    │   ├── issue_sync.py            # ✅ AUTO-SYNC zwischen Agents
+    │   └── sprint_runner.py         # ✅ AUTO-SPRINT Executor
+    └── templates/
+        ├── frontend/                 # Code-Templates für Frontend
+        └── backend/                  # Code-Templates für Backend
 ```
 
-## 🎯 PHASE 1: Setup Agent Execution (ONE-TIME)
+## 🤖 PHASE 1: Setup mit Auto-Code Generation
 
-### IMPORTANT: Setup Prerequisites
-
-**Manual preparation REQUIRED:**
-1. **GitHub repository** must already be created and accessible
-2. **README.md** with complete project description must already exist
-3. **Environment variables** must be set:
-   ```bash
-   export GITHUB_TOKEN=your_personal_access_token
-   export REPO_OWNER=your_github_username  
-   export REPO_NAME=your_repository_name
-   ```
-
-### Setup Agent Execution:
+### Setup-Agent Prompt (OPTIMIERT):
 ```bash
-# DO NOT set agent role - Setup Agent acts neutral
-codex "Perform setup for dual-agent system based on this master prompt"
+codex "Führe Dual-Agent Setup durch und GENERIERE SOFORT funktionsfähigen Starter-Code für beide Seiten"
 ```
 
-### Setup Agent Tasks (Executed Automatically):
+### Setup-Agent Auto-Aktionen:
 
-#### 1. Project Analysis & Validation
 ```python
-def validate_prerequisites():
-    # ✅ Test GitHub repo access
-    # ✅ Check if README.md exists and is complete
-    # ✅ Check for environment variables
-    # ✅ Test GitHub API functionality
-```
+# 1. AUTOMATISCHE CODE-GENERIERUNG (NEU!)
+def generate_starter_code():
+    """Generiert SOFORT lauffähigen Code"""
+    
+    # Frontend Starter (React/TypeScript)
+    create_file('/frontend/src/App.tsx', """
+import React, { useEffect, useState } from 'react';
+import { apiClient } from './services/apiClient';
 
-#### 2. GitHub Repository Configuration
-```python
-def setup_github_repository():
-    labels = [
-        'frontend-request', 'backend-request', 'api-contract',
-        'integration', 'bug-cross-agent', 'documentation',
-        'setup-required', 'sprint-coordination', 'validation-needed'
-    ]
-    branches = ['develop-frontend', 'develop-backend']
-    # ✅ Set up labels, branches, branch protections, issue templates
-```
+function App() {
+  const [data, setData] = useState(null);
+  
+  useEffect(() => {
+    apiClient.get('/api/status').then(res => setData(res.data));
+  }, []);
+  
+  return (
+    <div className="App">
+      <h1>Dual-Agent Project</h1>
+      <p>Status: {data?.status || 'Loading...'}</p>
+    </div>
+  );
+}
+export default App;
+    """)
+    
+    # Backend Starter (Python/FastAPI)
+    create_file('/backend/src/app.py', """
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
-#### 3. Generate Directory Structure
-```python
-def create_directory_structure():
-    # ✅ Create complete /codex/ structure
-    # ✅ Generate all necessary .md files
-    # ✅ Add Python scripts for GitHub integration
-    # ✅ Add agent-specific configuration files
-```
+app = FastAPI()
 
-#### 4. Create Agent Configuration Files
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-**Frontend Agent Configuration** (`/codex/agents/frontend/config.md`):
-```markdown
-# Frontend Agent Configuration
+@app.get("/api/status")
+async def get_status():
+    return {"status": "operational", "version": "1.0.0"}
 
-## Responsibilities
-- UI/UX Development
-- Client-side logic
-- API integration
-- Frontend testing
-- Responsive design
+@app.get("/api/data")
+async def get_data():
+    # TODO: Implement data endpoint
+    return {"data": []}
 
-## Tech Stack
-[To be filled based on README.md]
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    """)
+    
+    # API Client für Frontend
+    create_file('/frontend/src/services/apiClient.ts', """
+import axios from 'axios';
 
-## GitHub Issue Labels (Frontend)
-- `frontend-request`: Requests to Backend
-- `api-contract`: API definitions
-- `integration`: Frontend-Backend integration
-```
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-**Backend Agent Configuration** (`/codex/agents/backend/config.md`):
-```markdown
-# Backend Agent Configuration
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-## Responsibilities
-- Server logic
-- Database design & management
-- API development
-- Backend services
-- Performance & security
+// Auto-retry logic
+apiClient.interceptors.response.use(
+  response => response,
+  async error => {
+    if (error.response?.status === 503) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return apiClient.request(error.config);
+    }
+    return Promise.reject(error);
+  }
+);
+    """)
 
-## Tech Stack
-[To be filled based on README.md]
-
-## GitHub Issue Labels (Backend)
-- `backend-request`: Requests to Frontend
-- `api-contract`: API definitions
-- `integration`: Backend-Frontend integration
-```
-
-#### 5. Generate Executable Agent Prompts
-
-**Frontend Agent Prompt** (`/codex/agents/frontend/prompt.md`):
-```markdown
-# Frontend Agent Execution Prompt
-
-## Agent Identification
-You are the **FRONTEND_AGENT** in a dual-agent system.
-
-## Sprint Start Protocol
-
-### 1. Set Agent Role
-```bash
-export AGENT_ROLE=FRONTEND_AGENT
-```
-
-### 2. Issue Synchronization
-```python
-import sys
-sys.path.append('/codex/github/')
-from issue_manager import sync_frontend_issues
-
-my_issues = sync_frontend_issues()
-print(f"Found frontend issues: {len(my_issues)}")
-```
-
-### 3. Roadmap Check
-- Read: `/codex/daten/frontend/roadmap.md`
-- Read: `/codex/daten/frontend/status.md`
-- Read: `/codex/daten/shared/api_contracts.md`
-
-### 4. Workspace
-- Work ONLY in `/frontend/`
-- Branch: `feature/frontend-*`
-- Tests: frontend-specific
-
-### 5. Coordination
-- Create issues for backend requests
-- Update API contracts when needed
-- Use GitHub Issues for communication
-
-### 6. Sprint End
-- Update `/codex/daten/frontend/changelog.md`
-- Update `/codex/daten/frontend/status.md`
-- Create issues for the next sprint
-```
-
-**Backend Agent Prompt** (`/codex/agents/backend/prompt.md`):
-```markdown
-# Backend Agent Execution Prompt
-
-## Agent Identification
-You are the **BACKEND_AGENT** in a dual-agent system.
-
-## Sprint Start Protocol
-
-### 1. Set Agent Role
-```bash
-export AGENT_ROLE=BACKEND_AGENT
-```
-
-### 2. Issue Synchronization
-```python
-import sys
-sys.path.append('/codex/github/')
-from issue_manager import sync_backend_issues
-
-my_issues = sync_backend_issues()
-print(f"Found backend issues: {len(my_issues)}")
-```
-
-### 3. Roadmap Check
-- Read: `/codex/daten/backend/roadmap.md`
-- Read: `/codex/daten/backend/status.md`
-- Read: `/codex/daten/shared/api_contracts.md`
-
-### 4. Workspace
-- Work ONLY in `/backend/`
-- Branch: `feature/backend-*`
-- Tests: backend-specific
-
-### 5. Coordination
-- Create issues to notify frontend
-- Update API contracts when needed
-- Use GitHub Issues for communication
-
-### 6. Sprint End
-- Update `/codex/daten/backend/changelog.md`
-- Update `/codex/daten/backend/status.md`
-- Create issues for the next sprint
-```
-
-#### 6. GitHub Issue Management System
-
-**Issue Manager Script** (`/codex/github/issue_manager.py`):
-```python
+# 2. AUTO-SYNC SYSTEM (OPTIMIERT)
+def create_auto_sync_system():
+    """Erstellt automatisches Agent-Sync System"""
+    
+    create_file('/codex/automation/issue_sync.py', """
 import os
-import requests
+import json
+import subprocess
 from datetime import datetime
 
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-REPO_OWNER = os.getenv('REPO_OWNER')
-REPO_NAME = os.getenv('REPO_NAME')
+class AgentSync:
+    def __init__(self):
+        self.frontend_watch = '/codex/daten/frontend/requests.json'
+        self.backend_watch = '/codex/daten/backend/requests.json'
+    
+    def auto_create_issue(self, from_agent, to_agent, request_type, details):
+        '''Erstellt automatisch GitHub Issue'''
+        
+        # Auto-detect API changes
+        if request_type == 'api_change':
+            title = f"🔄 API Change: {details['endpoint']}"
+            labels = ['api-contract', f'{to_agent.lower()}-request']
+        elif request_type == 'new_feature':
+            title = f"✨ New Feature: {details['feature']}"
+            labels = [f'{to_agent.lower()}-request', 'enhancement']
+        else:
+            title = f"📋 {from_agent} → {to_agent}: {details['title']}"
+            labels = [f'{to_agent.lower()}-request']
+        
+        # Create issue via CURL
+        issue_data = {
+            'title': title,
+            'body': self._generate_issue_body(from_agent, details),
+            'labels': labels
+        }
+        
+        curl_cmd = [
+            'curl', '-s', '-X', 'POST',
+            '-H', f'Authorization: token {os.getenv("GITHUB_TOKEN")}',
+            '-H', 'Accept: application/vnd.github.v3+json',
+            '-d', json.dumps(issue_data),
+            f'https://api.github.com/repos/{os.getenv("REPO_OWNER")}/{os.getenv("REPO_NAME")}/issues'
+        ]
+        
+        subprocess.run(curl_cmd)
+    
+    def _generate_issue_body(self, from_agent, details):
+        '''Generiert strukturierten Issue Body'''
+        return f'''
+## 🤖 Auto-Generated by {from_agent}
 
-def sync_frontend_issues():
-    issues = fetch_issues_by_labels(['frontend-request', 'api-contract', 'integration'])
-    return filter_open_issues(issues)
+### Request Type: {details.get('type', 'general')}
 
-def sync_backend_issues():
-    issues = fetch_issues_by_labels(['backend-request', 'api-contract', 'integration'])
-    return filter_open_issues(issues)
+### Details:
+{json.dumps(details, indent=2)}
 
-def create_coordination_issue(title, body, labels, assignee=None):
-    pass
+### Expected Response:
+- [ ] Acknowledge receipt
+- [ ] Implement changes
+- [ ] Update API contracts if needed
+- [ ] Notify completion
 
-def close_completed_issue(issue_number, completion_note):
-    pass
+### Auto-Sync ID: {datetime.now().isoformat()}
+'''
+
+# Auto-Sync Runner
+if __name__ == '__main__':
+    sync = AgentSync()
+    # Wird bei jedem Sprint automatisch ausgeführt
+    """)
+
+# 3. SPRINT AUTOMATION (NEU!)
+def create_sprint_automation():
+    """Sprint Runner für automatische Ausführung"""
+    
+    create_file('/codex/automation/sprint_runner.py', """
+import os
+import sys
+import time
+from datetime import datetime
+
+class SprintRunner:
+    def __init__(self, agent_role):
+        self.agent = agent_role
+        self.sprint_count = 0
+        
+    def run_sprint(self):
+        '''Führt einen kompletten Sprint automatisch aus'''
+        self.sprint_count += 1
+        print(f"\\n🏃 Sprint #{self.sprint_count} - {self.agent}")
+        
+        # 1. Issue Sync
+        self._sync_issues()
+        
+        # 2. Analyze & Prioritize
+        tasks = self._prioritize_tasks()
+        
+        # 3. GENERATE CODE (WICHTIGSTER TEIL!)
+        for task in tasks:
+            if task['type'] in ['feature', 'api', 'component']:
+                self._generate_code(task)
+            elif task['type'] == 'bug':
+                self._fix_code(task)
+                
+        # 4. Run Tests
+        self._run_tests()
+        
+        # 5. Update Status
+        self._update_status()
+        
+    def _generate_code(self, task):
+        '''GENERIERT TATSÄCHLICHEN CODE'''
+        print(f"💻 Generating code for: {task['title']}")
+        
+        if self.agent == 'FRONTEND_AGENT':
+            if 'component' in task['title'].lower():
+                self._create_react_component(task)
+            elif 'page' in task['title'].lower():
+                self._create_react_page(task)
+            elif 'hook' in task['title'].lower():
+                self._create_react_hook(task)
+                
+        elif self.agent == 'BACKEND_AGENT':
+            if 'endpoint' in task['title'].lower():
+                self._create_api_endpoint(task)
+            elif 'model' in task['title'].lower():
+                self._create_data_model(task)
+            elif 'service' in task['title'].lower():
+                self._create_service(task)
+    
+    def _create_react_component(self, task):
+        '''Generiert React Component'''
+        component_name = task.get('component_name', 'NewComponent')
+        code = f'''
+import React from 'react';
+import {{ useAPI }} from '../hooks/useAPI';
+
+interface {component_name}Props {{
+  // TODO: Define props
+}}
+
+export const {component_name}: React.FC<{component_name}Props> = (props) => {{
+  const {{ data, loading, error }} = useAPI('/api/{component_name.lower()}');
+  
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {{error.message}}</div>;
+  
+  return (
+    <div className="{component_name.lower()}">
+      {{/* TODO: Implement component */}}
+      <h2>{component_name}</h2>
+      <pre>{{JSON.stringify(data, null, 2)}}</pre>
+    </div>
+  );
+}};
+'''
+        # Speichere Component
+        path = f'/frontend/src/components/{component_name}.tsx'
+        self._save_code(path, code)
+        
+# Sprint Executor
+if __name__ == '__main__':
+    agent = os.getenv('AGENT_ROLE')
+    runner = SprintRunner(agent)
+    runner.run_sprint()
+    """)
 ```
 
-#### 7. Setup Validation & Completion
+## 🎯 PHASE 2: Agent-Prompts mit Auto-Execution
+
+### FRONTEND Agent Prompt (OPTIMIERT):
+```markdown
+# Frontend Agent - CODE FIRST!
+
+## 🚨 WICHTIGSTE REGEL
+Bei JEDER Ausführung MUSST du:
+1. **CODE GENERIEREN** (mindestens 1 neue Komponente/Feature)
+2. **TESTS SCHREIBEN** (für generierten Code)
+3. **NUR DANN** Issues erstellen, wenn Backend-Änderung nötig
+
+## Auto-Sprint Execution
 
 ```python
-def validate_setup():
-    # ✅ Directories created
-    # ✅ Configuration files exist
-    # ✅ GitHub API working
-    # ✅ Issue labels created
-    # ✅ Branch structure exists
-    # ✅ Agent prompts executable
+# AUTOMATISCH bei jedem Start ausführen:
+import sys
+sys.path.append('/codex/automation/')
+from sprint_runner import SprintRunner
+from issue_sync import AgentSync
+
+# Sprint starten
+runner = SprintRunner('FRONTEND_AGENT')
+runner.run_sprint()
+
+# Nach Code-Generierung: Sync prüfen
+sync = AgentSync()
+# Automatisch Issues für API-Anfragen erstellen
 ```
 
-#### 8. Create First Coordination Issue
+## Tägliche Code-Ziele
+- [ ] Mindestens 2 neue Components
+- [ ] Mindestens 1 neuer Hook
+- [ ] Mindestens 3 Unit Tests
+- [ ] API Integration für neue Endpoints
 
+## Code-Generation Triggers
+- Neues Issue → Sofort Component erstellen
+- API Contract Update → Sofort Service anpassen
+- Bug Report → Sofort Fix implementieren
+
+## NIEMALS
+- ❌ Nur planen ohne Code zu schreiben
+- ❌ Auf Backend warten ohne Frontend vorzubereiten
+- ❌ Issues erstellen ohne konkreten Bedarf
+```
+
+### BACKEND Agent Prompt (OPTIMIERT):
 ```markdown
-**Title**: "🚀 Dual-Agent System Setup Complete - Ready for Parallel Development"
-**Labels**: setup-required, sprint-coordination
-**Body**:
-# Dual-Agent System successfully configured!
+# Backend Agent - API FIRST!
 
-## ✅ Setup Agent Completion
+## 🚨 WICHTIGSTE REGEL
+Bei JEDER Ausführung MUSST du:
+1. **APIs IMPLEMENTIEREN** (mindestens 1 neuer Endpoint)
+2. **MODELS ERSTELLEN** (für neue Features)
+3. **NUR DANN** Issues erstellen, wenn Frontend-Info nötig
 
-### Configured Components:
-- ✅ GitHub repo with 9 agent labels
-- ✅ Branch structure (develop-frontend, develop-backend)
-- ✅ Full /codex/ directory structure
-- ✅ Agent configuration files
-- ✅ Executable agent prompts
-- ✅ GitHub issue management system
-- ✅ API contract management
+## Auto-Sprint Execution
 
-### Next Steps:
+```python
+# AUTOMATISCH bei jedem Start ausführen:
+import sys
+sys.path.append('/codex/automation/')
+from sprint_runner import SprintRunner
+from issue_sync import AgentSync
 
-#### Start Frontend Agent:
+# Sprint starten
+runner = SprintRunner('BACKEND_AGENT')
+runner.run_sprint()
+
+# Nach API-Erstellung: Contracts updaten
+with open('/codex/daten/shared/api_contracts.md', 'a') as f:
+    f.write(f"\\n## Neuer Endpoint: {endpoint_info}")
+```
+
+## Tägliche Code-Ziele
+- [ ] Mindestens 2 neue API Endpoints
+- [ ] Mindestens 1 neues Model
+- [ ] Mindestens 1 Service Layer
+- [ ] Database Migrations wenn nötig
+
+## Code-Generation Triggers
+- Frontend Request → Sofort API erstellen
+- Neues Feature → Sofort Model + Controller
+- Performance Issue → Sofort Optimierung
+
+## NIEMALS
+- ❌ Nur Datenbank-Design ohne Implementation
+- ❌ Warten auf perfekte Spezifikation
+- ❌ Issues ohne konkreten Code dahinter
+```
+
+## 🔄 Automatischer Sprint-Zyklus 2.0
+
+### Start-Kommandos (VEREINFACHT):
+
 ```bash
-codex run prompt /codex/agents/frontend/prompt.md
+# Setup (einmalig)
+export GITHUB_TOKEN=xxx REPO_OWNER=xxx REPO_NAME=xxx
+codex "Setup Dual-Agent System - generiere Starter Code"
+
+# Frontend Agent (wiederholt)
+export AGENT_ROLE=FRONTEND_AGENT
+codex "Starte Frontend Sprint - schreibe Code"
+
+# Backend Agent (wiederholt)  
+export AGENT_ROLE=BACKEND_AGENT
+codex "Starte Backend Sprint - schreibe APIs"
 ```
 
-#### Start Backend Agent:
-```bash
-codex run prompt /codex/agents/backend/prompt.md
+### Auto-Features:
+
+1. **Code-First Approach**
+   - Jeder Sprint MUSS Code generieren
+   - Templates für schnelle Generierung
+   - Auto-Import von Dependencies
+
+2. **Smart Issue Creation**
+   - Nur wenn Code-Abhängigkeit besteht
+   - Auto-Detection von API-Änderungen
+   - Strukturierte Request-Formate
+
+3. **Continuous Integration**
+   - Auto-Tests nach Code-Generierung
+   - Auto-Merge bei erfolgreichen Tests
+   - Auto-Deploy Vorbereitung
+
+## 📊 Erfolgs-Metriken
+
+```yaml
+Pro Sprint MINIMUM:
+- Lines of Code: 200+
+- Neue Features: 2+
+- Tests: 5+
+- Issues: Max 2 (nur wenn nötig)
+
+FOKUS: 80% Coding, 20% Koordination
 ```
 
-**System is ready for parallel dual-agent development!**
-```
+## 🚀 Zusammenfassung der Optimierungen
 
-## 🎯 PHASE 2: Parallel Agent Development
+1. **CODE FIRST**: Agents müssen bei jeder Ausführung Code generieren
+2. **AUTO-SYNC**: Automatische Issue-Erstellung nur bei Bedarf
+3. **SMART TEMPLATES**: Vorgefertigte Code-Templates für schnelle Entwicklung
+4. **SPRINT AUTOMATION**: Komplette Sprint-Ausführung automatisiert
+5. **CLEAR PRIORITIES**: Coding > Testing > Communication
 
-### Start Frontend Agent:
-```bash
-# Terminal 1
-codex run prompt /codex/agents/frontend/prompt.md
-```
-
-### Start Backend Agent:
-```bash
-# Terminal 2
-codex run prompt /codex/agents/backend/prompt.md
-```
-
-## 🔄 Continuous Sprint Cycle (for both agents)
-
-### At each sprint:
-1. **Issue Sync**: Load all relevant GitHub issues
-2. **Roadmap Check**: Load current tasks
-3. **API Contract Check**
-4. **Coordination Issues**: Create issues for counterpart agent
-5. **Development**
-6. **Documentation**: Update changelog and status
-7. **Issue Updates**: Close completed issues, create new ones
-
-### Agent communication via GitHub Issues:
-- **Frontend → Backend**: Issues with label `backend-request`
-- **Backend → Frontend**: Issues with label `frontend-request`
-- **Shared**: Issues with `integration`, `api-contract`
-
-## 🚀 Execution Summary
-
-### 1. One-time Setup Phase:
-```bash
-export GITHUB_TOKEN=your_token
-export REPO_OWNER=your_username
-export REPO_NAME=your_repo
-
-codex "Perform setup for dual-agent system based on this master prompt"
-```
-
-### 2. Repeating Development Phase:
-```bash
-# Terminal 1 - Frontend Agent
-codex run prompt /codex/agents/frontend/prompt.md
-
-# Terminal 2 - Backend Agent
-codex run prompt /codex/agents/backend/prompt.md
-```
-
-**This system ensures:**
-- ✅ Clear separation between setup and development
-- ✅ Automatic agent coordination via GitHub Issues
-- ✅ Parallel, conflict-free development
-- ✅ Continuous integration and communication
-- ✅ Full documentation and traceability
-
-Agents operate fully autonomously and coordinate solely through GitHub Issues!
+Das System garantiert jetzt:
+- ✅ Bei JEDER Ausführung wird Code geschrieben
+- ✅ Automatische Synchronisation ohne manuelle Intervention  
+- ✅ Klare Metriken für Fortschritt
+- ✅ Minimale Koordinations-Overhead
+- ✅ Maximale Code-Output
