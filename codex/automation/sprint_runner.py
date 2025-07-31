@@ -3038,14 +3038,57 @@ export default {component_name};
         '''Sync with GitHub issues'''
         print("🔄 Syncing issues...")
         
+        # Check if GitHub API was validated in the shell script
+        github_validated = os.getenv('GITHUB_API_VALIDATED', 'false').lower() == 'true'
+        test_mode = os.getenv('TEST_MODE_ENABLED', 'false').lower() == 'true'
+        
+        if not github_validated and not test_mode:
+            print("❌ CRITICAL ERROR: GitHub API not validated!")
+            print("❌ Cannot proceed without functional GitHub issues automation.")
+            print("❌ Autonomous issue processing is required for:")
+            print("   - Planning next development steps")
+            print("   - Processing feature requests") 
+            print("   - Coordinating development workflow")
+            print("❌ Stopping execution to prevent uncoordinated development.")
+            raise SystemExit("GitHub Issues automation validation failed")
+        
         # Get the tasks that will be prioritized
         upcoming_tasks = self._get_upcoming_tasks()
         
-        # Create GitHub issues for each task
-        for task in upcoming_tasks:
-            self._create_github_issue(task)
+        if test_mode:
+            print("⚠️ Running in TEST MODE - creating local issue tracking instead of GitHub issues")
+            self._create_local_issue_tracking(upcoming_tasks)
+            print(f"✅ Created local issue tracking for {len(upcoming_tasks)} tasks")
+            return
         
-        print(f"✅ Created {len(upcoming_tasks)} GitHub issues")
+        # Create GitHub issues for each task
+        issues_created = 0
+        issues_failed = 0
+        
+        for task in upcoming_tasks:
+            success = self._create_github_issue(task)
+            if success:
+                issues_created += 1
+            else:
+                issues_failed += 1
+        
+        # Verify that issue creation is actually working
+        if issues_created == 0 and len(upcoming_tasks) > 0:
+            print("❌ CRITICAL ERROR: No GitHub issues could be created!")
+            print("❌ GitHub Issues automation is non-functional.")
+            print("❌ Cannot proceed with autonomous development coordination.")
+            raise SystemExit("GitHub Issues creation completely failed")
+        
+        if issues_failed > 0:
+            print(f"⚠️ Warning: {issues_failed} issues failed to create out of {len(upcoming_tasks)} total")
+            if issues_failed > issues_created:
+                print("❌ CRITICAL ERROR: More issues failed than succeeded!")
+                print("❌ GitHub Issues automation is not reliable enough for autonomous operation.")
+                raise SystemExit("GitHub Issues creation mostly failed")
+        
+        print(f"✅ Successfully created {issues_created} GitHub issues")
+        if issues_failed > 0:
+            print(f"⚠️ {issues_failed} issues failed - but proceeding with partial success")
         
     def _get_upcoming_tasks(self):
         '''Get tasks that will be worked on in this sprint - 100x expansion'''
@@ -3194,14 +3237,20 @@ export default {component_name};
     def _create_github_issue(self, task):
         '''Create a GitHub issue for a task'''
         try:
-            # Skip if required env vars are not set or are dummy values
+            # Get environment variables
             github_token = os.getenv('GITHUB_TOKEN')
             repo_owner = os.getenv('REPO_OWNER')
             repo_name = os.getenv('REPO_NAME')
             
-            if not github_token or not repo_owner or not repo_name or github_token == 'dummy_token':
-                print(f"⚠️ Skipping GitHub issue creation for '{task['title']}' - missing or dummy credentials")
-                return
+            # Check if required env vars are set
+            if not github_token or not repo_owner or not repo_name:
+                print(f"❌ Missing credentials for '{task['title']}' - GitHub token, repo owner, or repo name not set")
+                return False
+                
+            # Check for dummy/placeholder values
+            if github_token in ['dummy_token', 'your_token_here', 'placeholder']:
+                print(f"❌ Dummy token detected for '{task['title']}' - real GitHub token required")
+                return False
                 
             # Generate issue title and labels
             if task['type'] == 'api':
@@ -3235,26 +3284,179 @@ export default {component_name};
                 'curl', '-s', '-X', 'POST',
                 '-H', f'Authorization: token {github_token}',
                 '-H', 'Accept: application/vnd.github.v3+json',
+                '-H', 'User-Agent: Mrs-Unkwn-Agent/1.0',
                 '-d', json.dumps(issue_data),
                 f'https://api.github.com/repos/{repo_owner}/{repo_name}/issues'
             ]
             
-            result = subprocess.run(curl_cmd, capture_output=True, text=True)
+            result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=30)
             
             if result.returncode == 0:
                 try:
                     response = json.loads(result.stdout)
                     if 'html_url' in response:
                         print(f"✅ Created issue: {title} ({response['html_url']})")
+                        return True
+                    elif 'message' in response:
+                        print(f"❌ GitHub API error for '{title}': {response['message']}")
+                        if 'documentation_url' in response:
+                            print(f"   See: {response['documentation_url']}")
+                        return False
                     else:
-                        print(f"⚠️ Issue creation response: {result.stdout}")
+                        print(f"⚠️ Unexpected response for '{title}': {result.stdout}")
+                        return False
                 except json.JSONDecodeError:
-                    print(f"⚠️ Issue created but couldn't parse response for: {title}")
+                    print(f"❌ Invalid JSON response for '{title}': {result.stdout}")
+                    return False
             else:
-                print(f"❌ Failed to create issue '{title}': {result.stderr}")
+                print(f"❌ curl failed for '{title}': {result.stderr}")
+                if result.stdout:
+                    print(f"❌ stdout: {result.stdout}")
+                return False
                 
+        except subprocess.TimeoutExpired:
+            print(f"❌ Timeout creating issue for '{task['title']}'")
+            return False
+    def _create_local_issue_tracking(self, tasks):
+        '''Create local issue tracking file when GitHub API is not available'''
+        try:
+            # Create issues directory if it doesn't exist
+            issues_dir = self.project_root / 'codex' / 'data' / 'issues'
+            issues_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create timestamp for this sprint
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            issues_file = issues_dir / f'sprint_{self.sprint_count}_{timestamp}_issues.md'
+            
+            # Generate issue tracking content
+            content = f"""# Sprint #{self.sprint_count} - Local Issue Tracking
+
+**Generated**: {datetime.now().isoformat()}
+**Agent**: {self.agent}
+**Total Tasks**: {len(tasks)}
+
+---
+
+## 📋 Task List
+
+"""
+            
+            for i, task in enumerate(tasks, 1):
+                task_type = task.get('type', 'unknown')
+                
+                # Generate title and priority
+                if task_type == 'api':
+                    title = f"🔌 Implement {task['title']}"
+                    endpoint = task.get('endpoint', 'N/A')
+                    priority = "High"
+                elif task_type == 'model':
+                    title = f"🗃️ Create {task['title']}"
+                    model_name = task.get('model_name', 'N/A')
+                    priority = "High"
+                elif task_type == 'service':
+                    title = f"⚙️ Implement {task['title']}"
+                    service_name = task.get('service_name', 'N/A')
+                    priority = "Medium"
+                elif task_type == 'component':
+                    title = f"🎨 Create {task['title']}"
+                    component_name = task.get('component_name', 'N/A')
+                    priority = "Medium"
+                else:
+                    title = f"📋 {task['title']}"
+                    priority = "Medium"
+                
+                content += f"""### {i}. {title}
+
+- **Type**: {task_type}
+- **Priority**: {priority}
+- **Status**: ⏳ Pending
+"""
+                
+                # Add specific details based on task type
+                if task_type == 'api':
+                    content += f"- **Endpoint**: `{endpoint}`\n"
+                elif task_type == 'model':
+                    content += f"- **Model Name**: `{model_name}`\n"
+                elif task_type == 'service':
+                    content += f"- **Service Name**: `{service_name}`\n"
+                elif task_type == 'component':
+                    content += f"- **Component Name**: `{component_name}`\n"
+                
+                content += f"""- **Created**: {datetime.now().isoformat()}
+
+**Requirements**:
+- [ ] Implement core functionality
+- [ ] Add proper error handling
+- [ ] Include tests
+- [ ] Update documentation
+
+---
+
+"""
+            
+            content += f"""
+## 📊 Summary
+
+- **Total Tasks**: {len(tasks)}
+- **API Endpoints**: {sum(1 for t in tasks if t.get('type') == 'api')}
+- **Data Models**: {sum(1 for t in tasks if t.get('type') == 'model')}
+- **Services**: {sum(1 for t in tasks if t.get('type') == 'service')}
+- **Components**: {sum(1 for t in tasks if t.get('type') == 'component')}
+- **Other**: {sum(1 for t in tasks if t.get('type') not in ['api', 'model', 'service', 'component'])}
+
+## 🔄 Progress Tracking
+
+To update task status, edit this file and change the status:
+- ⏳ Pending
+- 🔄 In Progress
+- ✅ Completed
+- ❌ Blocked
+
+## 🚀 Next Steps
+
+1. Review and prioritize tasks
+2. Begin implementation starting with high priority items
+3. Update status as work progresses
+4. Create additional issues for discovered subtasks
+
+---
+
+*Generated by Mrs-Unkwn Unified Agent*
+*This file serves as local issue tracking when GitHub API is not available*
+"""
+            
+            # Write to file
+            with open(issues_file, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            print(f"📝 Created local issue tracking file: {issues_file}")
+            
+            # Also create a summary file for quick reference
+            summary_file = issues_dir / 'latest_sprint_summary.json'
+            summary_data = {
+                'sprint_number': self.sprint_count,
+                'agent': self.agent,
+                'timestamp': datetime.now().isoformat(),
+                'total_tasks': len(tasks),
+                'tasks_by_type': {
+                    'api': sum(1 for t in tasks if t.get('type') == 'api'),
+                    'model': sum(1 for t in tasks if t.get('type') == 'model'),
+                    'service': sum(1 for t in tasks if t.get('type') == 'service'),
+                    'component': sum(1 for t in tasks if t.get('type') == 'component'),
+                    'other': sum(1 for t in tasks if t.get('type') not in ['api', 'model', 'service', 'component'])
+                },
+                'issues_file': str(issues_file),
+                'mode': 'local_tracking'
+            }
+            
+            with open(summary_file, 'w', encoding='utf-8') as f:
+                json.dump(summary_data, f, indent=2)
+            
+            print(f"📊 Created sprint summary: {summary_file}")
+            
         except Exception as e:
-            print(f"❌ Error creating issue for '{task['title']}': {str(e)}")
+            print(f"❌ Error creating local issue tracking: {str(e)}")
+            # Don't raise exception, as this is a fallback mechanism
     
     def _generate_issue_body(self, task):
         '''Generate issue body for a task'''
