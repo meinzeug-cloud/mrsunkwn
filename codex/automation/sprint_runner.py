@@ -52,7 +52,21 @@ class SprintRunner:
         
     def _get_upcoming_tasks(self):
         '''Get tasks that will be worked on in this sprint'''
-        if self.agent == 'BACKEND_AGENT':
+        if self.agent == 'UNIFIED_AGENT':
+            # Unified approach: Mix backend and frontend tasks for hand-in-hand development
+            return [
+                # Backend foundation
+                {'title': 'User Management API', 'type': 'api', 'endpoint': '/api/users'},
+                {'title': 'Learning Session Model', 'type': 'model', 'model_name': 'LearningSession'},
+                # Frontend components that work with the backend
+                {'title': 'Dashboard Component', 'type': 'component', 'component_name': 'Dashboard'},
+                {'title': 'Learning Interface', 'type': 'component', 'component_name': 'LearningInterface'},
+                # More backend services
+                {'title': 'Tutor Service', 'type': 'service', 'service_name': 'TutorService'},
+                # Frontend control panel
+                {'title': 'Parent Control Panel', 'type': 'component', 'component_name': 'ParentControlPanel'},
+            ]
+        elif self.agent == 'BACKEND_AGENT':
             return [
                 {'title': 'User Management API', 'type': 'api', 'endpoint': '/api/users'},
                 {'title': 'Learning Session Model', 'type': 'model', 'model_name': 'LearningSession'},
@@ -243,26 +257,58 @@ This service should provide:
         '''Prioritize and return tasks'''
         print("📋 Prioritizing tasks...")
 
-        
-        # For backend agent, prioritize API-related tasks
-        backend_tasks = [
-            {'title': 'User Management API', 'type': 'api', 'endpoint': '/api/users'},
-            {'title': 'Learning Session Model', 'type': 'model', 'model_name': 'LearningSession'},
-            {'title': 'Tutor Service', 'type': 'service', 'service_name': 'TutorService'},
-            {'title': 'Analytics API', 'type': 'api', 'endpoint': '/api/analytics'},
-            {'title': 'Family Management Model', 'type': 'model', 'model_name': 'FamilyManagement'},
-            {'title': 'Parental Control Service', 'type': 'service', 'service_name': 'ParentalControlService'},
-        ]
-
-        
-        # Return subset based on sprint goals
-        return backend_tasks[:3]  # Focus on first 3 tasks per sprint
+        if self.agent == 'UNIFIED_AGENT':
+            # Unified approach: Alternate between backend and frontend for integrated development
+            unified_tasks = [
+                {'title': 'User Management API', 'type': 'api', 'endpoint': '/api/users'},
+                {'title': 'Dashboard Component', 'type': 'component', 'component_name': 'Dashboard'},
+                {'title': 'Learning Session Model', 'type': 'model', 'model_name': 'LearningSession'},
+                {'title': 'Learning Interface', 'type': 'component', 'component_name': 'LearningInterface'},
+                {'title': 'Tutor Service', 'type': 'service', 'service_name': 'TutorService'},
+                {'title': 'Parent Control Panel', 'type': 'component', 'component_name': 'ParentControlPanel'},
+            ]
+            print("🔀 Unified sprint: Building backend and frontend hand in hand")
+            return unified_tasks
+        elif self.agent == 'BACKEND_AGENT':
+            # Legacy backend agent approach
+            backend_tasks = [
+                {'title': 'User Management API', 'type': 'api', 'endpoint': '/api/users'},
+                {'title': 'Learning Session Model', 'type': 'model', 'model_name': 'LearningSession'},
+                {'title': 'Tutor Service', 'type': 'service', 'service_name': 'TutorService'},
+                {'title': 'Analytics API', 'type': 'api', 'endpoint': '/api/analytics'},
+                {'title': 'Family Management Model', 'type': 'model', 'model_name': 'FamilyManagement'},
+                {'title': 'Parental Control Service', 'type': 'service', 'service_name': 'ParentalControlService'},
+            ]
+            return backend_tasks[:3]  # Focus on first 3 tasks per sprint
+        else:
+            # Legacy frontend agent approach
+            frontend_tasks = [
+                {'title': 'Dashboard Component', 'type': 'component', 'component_name': 'Dashboard'},
+                {'title': 'Learning Interface', 'type': 'component', 'component_name': 'LearningInterface'},
+                {'title': 'Parent Control Panel', 'type': 'component', 'component_name': 'ParentControlPanel'},
+            ]
+            return frontend_tasks[:3]
         
     def _generate_code(self, task):
         '''GENERATES ACTUAL CODE'''
         print(f"💻 Generating code for: {task['title']}")
         
-        if self.agent == 'FRONTEND_AGENT':
+        if self.agent == 'UNIFIED_AGENT':
+            # Unified approach: Handle both frontend and backend tasks
+            if 'endpoint' in task['title'].lower() or task['type'] == 'api':
+                self._create_api_endpoint(task)
+            elif 'model' in task['title'].lower() or task['type'] == 'model':
+                self._create_data_model(task)
+            elif 'service' in task['title'].lower() or task['type'] == 'service':
+                self._create_service(task)
+            elif 'component' in task['title'].lower() or task['type'] == 'component':
+                self._create_react_component(task)
+            elif 'page' in task['title'].lower():
+                self._create_react_page(task)
+            elif 'hook' in task['title'].lower():
+                self._create_react_hook(task)
+                
+        elif self.agent == 'FRONTEND_AGENT':
             if 'component' in task['title'].lower():
                 self._create_react_component(task)
             elif 'page' in task['title'].lower():
@@ -908,6 +954,6 @@ class {service_name}Service:
 
 # Sprint Executor
 if __name__ == '__main__':
-    agent = os.getenv('AGENT_ROLE', 'FRONTEND_AGENT')
+    agent = os.getenv('AGENT_ROLE', 'UNIFIED_AGENT')
     runner = SprintRunner(agent)
     runner.run_sprint()
