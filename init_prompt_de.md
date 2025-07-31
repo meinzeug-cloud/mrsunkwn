@@ -1,92 +1,92 @@
-# 🚀 Dual-Agent Master Prompt v2.0 - Automated Parallel Development
+# 🚀 Dual-Agent Master Prompt v2.0 - Automatisierte Parallele Entwicklung
 
-## 🎯 CRITICAL OPTIMIZATIONS
+## 🎯 KRITISCHE OPTIMIERUNGEN
 
 ### Auto-Execution Framework
 ```yaml
-PRIMARY DIRECTIVE: On EVERY execution the AI MUST:
-1. Generate/modify code (70% of time)
-2. Synchronize issues (20% of time)  
-3. Update documentation (10% of time)
+PRIMÄRE DIREKTIVE: Bei JEDER Ausführung MUSS die AI:
+1. Code generieren/modifizieren (70% der Zeit)
+2. Issues synchronisieren (20% der Zeit)  
+3. Dokumentation updaten (10% der Zeit)
 
-NEVER: Just plan without coding!
+NIEMALS: Nur planen ohne zu coden!
 ```
 
-## 🏗️ System Architecture
+## 🏗️ System-Architektur
 
-### Agent Roles with Code-First Approach
+### Agent-Rollen mit Code-First Ansatz
 
-#### SETUP_AGENT (One-time)
-- Creates COMPLETE, FUNCTIONAL boilerplate projects
-- Generates EXECUTABLE starter code for both sides
-- Configures automatic sync mechanisms
+#### SETUP_AGENT (Einmalig)
+- Erstellt VOLLSTÄNDIGE, FUNKTIONSFÄHIGE Boilerplate-Projekte
+- Generiert AUSFÜHRBAREN Starter-Code für beide Seiten
+- Konfiguriert automatische Sync-Mechanismen
 
-#### FRONTEND_AGENT (Continuous)
+#### FRONTEND_AGENT (Kontinuierlich)
 ```yaml
-Priorities:
-1. WRITE CODE: Components, Pages, Hooks, Services
-2. TEST: Unit & Integration Tests
-3. COMMUNICATE: Only when API changes needed
+Prioritäten:
+1. CODE SCHREIBEN: Komponenten, Pages, Hooks, Services
+2. TESTEN: Unit & Integration Tests
+3. KOMMUNIZIEREN: Nur wenn API-Änderungen nötig
 ```
 
-#### BACKEND_AGENT (Continuous)
+#### BACKEND_AGENT (Kontinuierlich)
 ```yaml
-Priorities:
-1. WRITE CODE: APIs, Models, Controllers, Services
-2. TEST: Unit & Integration Tests
-3. COMMUNICATE: Only when frontend impact exists
+Prioritäten:
+1. CODE SCHREIBEN: APIs, Models, Controllers, Services
+2. TESTEN: Unit & Integration Tests
+3. KOMMUNIZIEREN: Nur wenn Frontend-Impact vorhanden
 ```
 
-## 📁 Extended Directory Structure with Auto-Code
+## 📁 Erweiterte Verzeichnisstruktur mit Auto-Code
 
 ```
 /
 ├── README.md
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx                    # ✅ AUTO-GENERATED on setup
+│   │   ├── App.tsx                    # ✅ AUTO-GENERIERT beim Setup
 │   │   ├── components/
-│   │   │   └── [Component].tsx        # ✅ AUTO-GENERATED as needed
+│   │   │   └── [Component].tsx        # ✅ AUTO-GENERIERT bei Bedarf
 │   │   ├── hooks/
-│   │   │   └── useAPI.ts             # ✅ AUTO-GENERATED for API calls
+│   │   │   └── useAPI.ts             # ✅ AUTO-GENERIERT für API-Calls
 │   │   └── services/
-│   │       └── apiClient.ts          # ✅ AUTO-GENERATED with Axios/Fetch
+│   │       └── apiClient.ts          # ✅ AUTO-GENERIERT mit Axios/Fetch
 │   ├── tests/
-│   └── package.json                   # ✅ AUTO-GENERATED with dependencies
+│   └── package.json                   # ✅ AUTO-GENERIERT mit Dependencies
 ├── backend/
 │   ├── src/
-│   │   ├── app.py                    # ✅ AUTO-GENERATED on setup
+│   │   ├── app.py                    # ✅ AUTO-GENERIERT beim Setup
 │   │   ├── models/
-│   │   │   └── [Model].py           # ✅ AUTO-GENERATED as needed
+│   │   │   └── [Model].py           # ✅ AUTO-GENERIERT bei Bedarf
 │   │   ├── controllers/
-│   │   │   └── [Controller].py      # ✅ AUTO-GENERATED as needed
+│   │   │   └── [Controller].py      # ✅ AUTO-GENERIERT bei Bedarf
 │   │   └── routes/
-│   │       └── api.py               # ✅ AUTO-GENERATED with endpoints
+│   │       └── api.py               # ✅ AUTO-GENERIERT mit Endpoints
 │   ├── tests/
-│   └── requirements.txt              # ✅ AUTO-GENERATED with dependencies
+│   └── requirements.txt              # ✅ AUTO-GENERIERT mit Dependencies
 └── codex/
     ├── automation/
     │   ├── code_generator.py         # ✅ AUTO-CODE Generator
-    │   ├── issue_sync.py            # ✅ AUTO-SYNC between agents
+    │   ├── issue_sync.py            # ✅ AUTO-SYNC zwischen Agents
     │   └── sprint_runner.py         # ✅ AUTO-SPRINT Executor
     └── templates/
-        ├── frontend/                 # Code templates for frontend
-        └── backend/                  # Code templates for backend
+        ├── frontend/                 # Code-Templates für Frontend
+        └── backend/                  # Code-Templates für Backend
 ```
 
-## 🤖 PHASE 1: Setup with Auto-Code Generation
+## 🤖 PHASE 1: Setup mit Auto-Code Generation
 
-### Setup Agent Prompt (OPTIMIZED):
+### Setup-Agent Prompt (OPTIMIERT):
 ```bash
-codex "Execute Dual-Agent Setup and IMMEDIATELY GENERATE functional starter code for both sides"
+codex "Führe Dual-Agent Setup durch und GENERIERE SOFORT funktionsfähigen Starter-Code für beide Seiten"
 ```
 
-### Setup Agent Auto-Actions:
+### Setup-Agent Auto-Aktionen:
 
 ```python
-# 1. AUTOMATIC CODE GENERATION (NEW!)
+# 1. AUTOMATISCHE CODE-GENERIERUNG (NEU!)
 def generate_starter_code():
-    """Generates IMMEDIATELY runnable code"""
+    """Generiert SOFORT lauffähigen Code"""
     
     # Frontend Starter (React/TypeScript)
     create_file('/frontend/src/App.tsx', """
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
     """)
     
-    # API Client for Frontend
+    # API Client für Frontend
     create_file('/frontend/src/services/apiClient.ts', """
 import axios from 'axios';
 
@@ -164,9 +164,9 @@ apiClient.interceptors.response.use(
 );
     """)
 
-# 2. AUTO-SYNC SYSTEM (OPTIMIZED)
+# 2. AUTO-SYNC SYSTEM (OPTIMIERT)
 def create_auto_sync_system():
-    """Creates automatic agent sync system"""
+    """Erstellt automatisches Agent-Sync System"""
     
     create_file('/codex/automation/issue_sync.py', """
 import os
@@ -176,11 +176,11 @@ from datetime import datetime
 
 class AgentSync:
     def __init__(self):
-        self.frontend_watch = '/codex/data/frontend/requests.json'
-        self.backend_watch = '/codex/data/backend/requests.json'
+        self.frontend_watch = '/codex/daten/frontend/requests.json'
+        self.backend_watch = '/codex/daten/backend/requests.json'
     
     def auto_create_issue(self, from_agent, to_agent, request_type, details):
-        '''Automatically creates GitHub issue'''
+        '''Erstellt automatisch GitHub Issue'''
         
         # Auto-detect API changes
         if request_type == 'api_change':
@@ -211,7 +211,7 @@ class AgentSync:
         subprocess.run(curl_cmd)
     
     def _generate_issue_body(self, from_agent, details):
-        '''Generates structured issue body'''
+        '''Generiert strukturierten Issue Body'''
         return f'''
 ## 🤖 Auto-Generated by {from_agent}
 
@@ -232,12 +232,12 @@ class AgentSync:
 # Auto-Sync Runner
 if __name__ == '__main__':
     sync = AgentSync()
-    # Runs automatically on every sprint
+    # Wird bei jedem Sprint automatisch ausgeführt
     """)
 
-# 3. SPRINT AUTOMATION (NEW!)
+# 3. SPRINT AUTOMATION (NEU!)
 def create_sprint_automation():
-    """Sprint Runner for automatic execution"""
+    """Sprint Runner für automatische Ausführung"""
     
     create_file('/codex/automation/sprint_runner.py', """
 import os
@@ -251,7 +251,7 @@ class SprintRunner:
         self.sprint_count = 0
         
     def run_sprint(self):
-        '''Executes a complete sprint automatically'''
+        '''Führt einen kompletten Sprint automatisch aus'''
         self.sprint_count += 1
         print(f"\\n🏃 Sprint #{self.sprint_count} - {self.agent}")
         
@@ -261,7 +261,7 @@ class SprintRunner:
         # 2. Analyze & Prioritize
         tasks = self._prioritize_tasks()
         
-        # 3. GENERATE CODE (MOST IMPORTANT PART!)
+        # 3. GENERATE CODE (WICHTIGSTER TEIL!)
         for task in tasks:
             if task['type'] in ['feature', 'api', 'component']:
                 self._generate_code(task)
@@ -275,7 +275,7 @@ class SprintRunner:
         self._update_status()
         
     def _generate_code(self, task):
-        '''GENERATES ACTUAL CODE'''
+        '''GENERIERT TATSÄCHLICHEN CODE'''
         print(f"💻 Generating code for: {task['title']}")
         
         if self.agent == 'FRONTEND_AGENT':
@@ -295,7 +295,7 @@ class SprintRunner:
                 self._create_service(task)
     
     def _create_react_component(self, task):
-        '''Generates React Component'''
+        '''Generiert React Component'''
         component_name = task.get('component_name', 'NewComponent')
         code = f'''
 import React from 'react';
@@ -320,7 +320,7 @@ export const {component_name}: React.FC<{component_name}Props> = (props) => {{
   );
 }};
 '''
-        # Save Component
+        # Speichere Component
         path = f'/frontend/src/components/{component_name}.tsx'
         self._save_code(path, code)
         
@@ -332,156 +332,156 @@ if __name__ == '__main__':
     """)
 ```
 
-## 🎯 PHASE 2: Agent Prompts with Auto-Execution
+## 🎯 PHASE 2: Agent-Prompts mit Auto-Execution
 
-### FRONTEND Agent Prompt (OPTIMIZED):
+### FRONTEND Agent Prompt (OPTIMIERT):
 ```markdown
 # Frontend Agent - CODE FIRST!
 
-## 🚨 MOST IMPORTANT RULE
-On EVERY execution you MUST:
-1. **GENERATE CODE** (at least 1 new component/feature)
-2. **WRITE TESTS** (for generated code)
-3. **ONLY THEN** create issues if backend changes needed
+## 🚨 WICHTIGSTE REGEL
+Bei JEDER Ausführung MUSST du:
+1. **CODE GENERIEREN** (mindestens 1 neue Komponente/Feature)
+2. **TESTS SCHREIBEN** (für generierten Code)
+3. **NUR DANN** Issues erstellen, wenn Backend-Änderung nötig
 
 ## Auto-Sprint Execution
 
 ```python
-# AUTOMATICALLY execute on every start:
+# AUTOMATISCH bei jedem Start ausführen:
 import sys
 sys.path.append('/codex/automation/')
 from sprint_runner import SprintRunner
 from issue_sync import AgentSync
 
-# Start sprint
+# Sprint starten
 runner = SprintRunner('FRONTEND_AGENT')
 runner.run_sprint()
 
-# After code generation: Check sync
+# Nach Code-Generierung: Sync prüfen
 sync = AgentSync()
-# Automatically create issues for API requests
+# Automatisch Issues für API-Anfragen erstellen
 ```
 
-## Daily Code Goals
-- [ ] At least 2 new Components
-- [ ] At least 1 new Hook
-- [ ] At least 3 Unit Tests
-- [ ] API Integration for new endpoints
+## Tägliche Code-Ziele
+- [ ] Mindestens 2 neue Components
+- [ ] Mindestens 1 neuer Hook
+- [ ] Mindestens 3 Unit Tests
+- [ ] API Integration für neue Endpoints
 
-## Code Generation Triggers
-- New Issue → Immediately create Component
-- API Contract Update → Immediately adapt Service
-- Bug Report → Immediately implement Fix
+## Code-Generation Triggers
+- Neues Issue → Sofort Component erstellen
+- API Contract Update → Sofort Service anpassen
+- Bug Report → Sofort Fix implementieren
 
-## NEVER
-- ❌ Just plan without writing code
-- ❌ Wait for backend without preparing frontend
-- ❌ Create issues without concrete need
+## NIEMALS
+- ❌ Nur planen ohne Code zu schreiben
+- ❌ Auf Backend warten ohne Frontend vorzubereiten
+- ❌ Issues erstellen ohne konkreten Bedarf
 ```
 
-### BACKEND Agent Prompt (OPTIMIZED):
+### BACKEND Agent Prompt (OPTIMIERT):
 ```markdown
 # Backend Agent - API FIRST!
 
-## 🚨 MOST IMPORTANT RULE
-On EVERY execution you MUST:
-1. **IMPLEMENT APIs** (at least 1 new endpoint)
-2. **CREATE MODELS** (for new features)
-3. **ONLY THEN** create issues if frontend info needed
+## 🚨 WICHTIGSTE REGEL
+Bei JEDER Ausführung MUSST du:
+1. **APIs IMPLEMENTIEREN** (mindestens 1 neuer Endpoint)
+2. **MODELS ERSTELLEN** (für neue Features)
+3. **NUR DANN** Issues erstellen, wenn Frontend-Info nötig
 
 ## Auto-Sprint Execution
 
 ```python
-# AUTOMATICALLY execute on every start:
+# AUTOMATISCH bei jedem Start ausführen:
 import sys
 sys.path.append('/codex/automation/')
 from sprint_runner import SprintRunner
 from issue_sync import AgentSync
 
-# Start sprint
+# Sprint starten
 runner = SprintRunner('BACKEND_AGENT')
 runner.run_sprint()
 
-# After API creation: Update contracts
-with open('/codex/data/shared/api_contracts.md', 'a') as f:
-    f.write(f"\\n## New Endpoint: {endpoint_info}")
+# Nach API-Erstellung: Contracts updaten
+with open('/codex/daten/shared/api_contracts.md', 'a') as f:
+    f.write(f"\\n## Neuer Endpoint: {endpoint_info}")
 ```
 
-## Daily Code Goals
-- [ ] At least 2 new API Endpoints
-- [ ] At least 1 new Model
-- [ ] At least 1 Service Layer
-- [ ] Database Migrations if needed
+## Tägliche Code-Ziele
+- [ ] Mindestens 2 neue API Endpoints
+- [ ] Mindestens 1 neues Model
+- [ ] Mindestens 1 Service Layer
+- [ ] Database Migrations wenn nötig
 
-## Code Generation Triggers
-- Frontend Request → Immediately create API
-- New Feature → Immediately Model + Controller
-- Performance Issue → Immediately optimize
+## Code-Generation Triggers
+- Frontend Request → Sofort API erstellen
+- Neues Feature → Sofort Model + Controller
+- Performance Issue → Sofort Optimierung
 
-## NEVER
-- ❌ Just database design without implementation
-- ❌ Wait for perfect specification
-- ❌ Issues without concrete code behind them
+## NIEMALS
+- ❌ Nur Datenbank-Design ohne Implementation
+- ❌ Warten auf perfekte Spezifikation
+- ❌ Issues ohne konkreten Code dahinter
 ```
 
-## 🔄 Automatic Sprint Cycle 2.0
+## 🔄 Automatischer Sprint-Zyklus 2.0
 
-### Start Commands (SIMPLIFIED):
+### Start-Kommandos (VEREINFACHT):
 
 ```bash
-# Setup (one-time)
+# Setup (einmalig)
 export GITHUB_TOKEN=xxx REPO_OWNER=xxx REPO_NAME=xxx
-codex "Setup Dual-Agent System - generate starter code"
+codex "Setup Dual-Agent System - generiere Starter Code"
 
-# Frontend Agent (repeated)
+# Frontend Agent (wiederholt)
 export AGENT_ROLE=FRONTEND_AGENT
-codex "Start Frontend Sprint - write code"
+codex "Starte Frontend Sprint - schreibe Code"
 
-# Backend Agent (repeated)  
+# Backend Agent (wiederholt)  
 export AGENT_ROLE=BACKEND_AGENT
-codex "Start Backend Sprint - write APIs"
+codex "Starte Backend Sprint - schreibe APIs"
 ```
 
 ### Auto-Features:
 
 1. **Code-First Approach**
-   - Every sprint MUST generate code
-   - Templates for quick generation
-   - Auto-import of dependencies
+   - Jeder Sprint MUSS Code generieren
+   - Templates für schnelle Generierung
+   - Auto-Import von Dependencies
 
 2. **Smart Issue Creation**
-   - Only when code dependency exists
-   - Auto-detection of API changes
-   - Structured request formats
+   - Nur wenn Code-Abhängigkeit besteht
+   - Auto-Detection von API-Änderungen
+   - Strukturierte Request-Formate
 
 3. **Continuous Integration**
-   - Auto-tests after code generation
-   - Auto-merge on successful tests
-   - Auto-deploy preparation
+   - Auto-Tests nach Code-Generierung
+   - Auto-Merge bei erfolgreichen Tests
+   - Auto-Deploy Vorbereitung
 
-## 📊 Success Metrics
+## 📊 Erfolgs-Metriken
 
 ```yaml
-Per Sprint MINIMUM:
+Pro Sprint MINIMUM:
 - Lines of Code: 200+
-- New Features: 2+
+- Neue Features: 2+
 - Tests: 5+
-- Issues: Max 2 (only if necessary)
+- Issues: Max 2 (nur wenn nötig)
 
-FOCUS: 80% Coding, 20% Coordination
+FOKUS: 80% Coding, 20% Koordination
 ```
 
-## 🚀 Summary of Optimizations
+## 🚀 Zusammenfassung der Optimierungen
 
-1. **CODE FIRST**: Agents must generate code on every execution
-2. **AUTO-SYNC**: Automatic issue creation only when needed
-3. **SMART TEMPLATES**: Pre-made code templates for rapid development
-4. **SPRINT AUTOMATION**: Complete sprint execution automated
+1. **CODE FIRST**: Agents müssen bei jeder Ausführung Code generieren
+2. **AUTO-SYNC**: Automatische Issue-Erstellung nur bei Bedarf
+3. **SMART TEMPLATES**: Vorgefertigte Code-Templates für schnelle Entwicklung
+4. **SPRINT AUTOMATION**: Komplette Sprint-Ausführung automatisiert
 5. **CLEAR PRIORITIES**: Coding > Testing > Communication
 
-The system now guarantees:
-- ✅ Code is written on EVERY execution
-- ✅ Automatic synchronization without manual intervention  
-- ✅ Clear metrics for progress
-- ✅ Minimal coordination overhead
-- ✅ Maximum code output
+Das System garantiert jetzt:
+- ✅ Bei JEDER Ausführung wird Code geschrieben
+- ✅ Automatische Synchronisation ohne manuelle Intervention  
+- ✅ Klare Metriken für Fortschritt
+- ✅ Minimale Koordinations-Overhead
+- ✅ Maximale Code-Output
