@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // Interfaces and Types
-interface UserProfileProps {
+interface QuizEngineProps {
   userId?: string;
   className?: string;
   theme?: 'light' | 'dark' | 'auto';
@@ -30,7 +30,7 @@ interface UserProfileProps {
   }>;
 }
 
-interface UserProfileState {
+interface QuizEngineState {
   expanded: boolean;
   selectedItems: Set<string>;
   searchQuery: string;
@@ -46,7 +46,7 @@ interface UserProfileState {
 }
 
 // Main Component
-export const UserProfile: React.FC<UserProfileProps> = ({
+export const QuizEngine: React.FC<QuizEngineProps> = ({
   userId,
   className = '',
   theme = 'auto',
@@ -67,7 +67,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   customActions = []
 }) => {
   // State Management
-  const [state, setState] = useState<UserProfileState>({
+  const [state, setState] = useState<QuizEngineState>({
     expanded: true,
     selectedItems: new Set<string>(),
     searchQuery: '',
@@ -87,7 +87,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Custom Hooks
-  const [preferences, setPreferences] = useLocalStorage(`userprofile_preferences`, {
+  const [preferences, setPreferences] = useLocalStorage(`quizengine_preferences`, {
     viewMode: 'list',
     itemsPerPage: 20,
     sortBy: 'created_at',
@@ -96,7 +96,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
   // API Configuration
   const apiEndpoint = useMemo(() => {
-    const baseUrl = userId ? `/api/userprofiles/user/${userId}` : `/api/userprofiles`;
+    const baseUrl = userId ? `/api/quizengines/user/${userId}` : `/api/quizengines`;
     const queryParams = new URLSearchParams();
     
     if (state.searchQuery) queryParams.append('search', state.searchQuery);
@@ -131,13 +131,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   // Handle errors
   useEffect(() => {
     if (error) {
-      console.error(`UserProfile error:`, error);
+      console.error(`QuizEngine error:`, error);
       onError?.(error);
     }
   }, [error, onError]);
 
   // Event Handlers
-  const updateState = useCallback((updates: Partial<UserProfileState>) => {
+  const updateState = useCallback((updates: Partial<QuizEngineState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
@@ -207,10 +207,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     
     if (format === 'csv') {
       const csv = convertToCSV(exportData);
-      downloadFile(csv, `userprofile_export.csv`, 'text/csv');
+      downloadFile(csv, `quizengine_export.csv`, 'text/csv');
     } else {
       const json = JSON.stringify(exportData, null, 2);
-      downloadFile(json, `userprofile_export.json`, 'application/json');
+      downloadFile(json, `quizengine_export.json`, 'application/json');
     }
   }, [data?.items, state.selectedItems]);
 
@@ -303,7 +303,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     if (loading) {
       return (
         <div className="loading-container">
-          <div className="loading-spinner">Loading userprofiles...</div>
+          <div className="loading-spinner">Loading quizengines...</div>
         </div>
       );
     }
@@ -312,7 +312,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       return (
         <div className="error-container">
           <div className="error-message">
-            <h4>Error loading userprofiles</h4>
+            <h4>Error loading quizengines</h4>
             <p>{error.message}</p>
             <button onClick={handleRefresh} className="btn btn-primary">
               Try Again
@@ -326,8 +326,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       return (
         <div className="empty-state">
           <div className="empty-message">
-            <h4>No userprofiles found</h4>
-            <p>{state.searchQuery ? 'Try adjusting your search' : 'Get started by creating your first userprofile'}</p>
+            <h4>No quizengines found</h4>
+            <p>{state.searchQuery ? 'Try adjusting your search' : 'Get started by creating your first quizengine'}</p>
           </div>
         </div>
       );
@@ -535,13 +535,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   return (
     <div 
       ref={containerRef}
-      className={`userprofile-component theme-${theme} size-${size} variant-${variant} ${className}`}
-      data-testid="userprofile-component"
+      className={`quizengine-component theme-${theme} size-${size} variant-${variant} ${className}`}
+      data-testid="quizengine-component"
     >
       <div className="component-header">
         <div className="header-content">
           <h3 className="component-title">
-            UserProfile
+            QuizEngine
             {state.selectedItems.size > 0 && (
               <span className="selection-badge">
                 {state.selectedItems.size} selected
@@ -608,4 +608,4 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   );
 };
 
-export default UserProfile;
+export default QuizEngine;

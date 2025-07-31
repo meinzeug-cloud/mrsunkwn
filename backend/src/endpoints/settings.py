@@ -13,37 +13,37 @@ logger = logging.getLogger(__name__)
 
 # Create router with prefix and tags
 router = APIRouter(
-    prefix="/api/users",
-    tags=["users"],
+    prefix="/api/settings",
+    tags=["settings"],
     responses={
-        404: {"description": "Users not found"},
+        404: {"description": "Settings not found"},
         422: {"description": "Validation error"},
         500: {"description": "Internal server error"}
     }
 )
 
 # Enums for status and types
-class UsersStatus(str, Enum):
+class SettingsStatus(str, Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     PENDING = "pending"
     ARCHIVED = "archived"
     DELETED = "deleted"
 
-class UsersType(str, Enum):
+class SettingsType(str, Enum):
     STANDARD = "standard"
     PREMIUM = "premium"
     ENTERPRISE = "enterprise"
     CUSTOM = "custom"
 
 # Base models
-class UsersBase(BaseModel):
-    """Base model for users"""
-    name: str = Field(..., min_length=1, max_length=255, description="Name of the users")
-    description: Optional[str] = Field(None, max_length=1000, description="Description of the users")
-    status: UsersStatus = Field(default=UsersStatus.ACTIVE, description="Status of the users")
-    type: UsersType = Field(default=UsersType.STANDARD, description="Type of the users")
-    tags: Optional[List[str]] = Field(default_factory=list, description="Tags associated with the users")
+class SettingsBase(BaseModel):
+    """Base model for settings"""
+    name: str = Field(..., min_length=1, max_length=255, description="Name of the settings")
+    description: Optional[str] = Field(None, max_length=1000, description="Description of the settings")
+    status: SettingsStatus = Field(default=SettingsStatus.ACTIVE, description="Status of the settings")
+    type: SettingsType = Field(default=SettingsType.STANDARD, description="Type of the settings")
+    tags: Optional[List[str]] = Field(default_factory=list, description="Tags associated with the settings")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
     
     @validator('name')
@@ -58,15 +58,15 @@ class UsersBase(BaseModel):
             raise ValueError('Maximum 10 tags allowed')
         return v
 
-class UsersCreate(UsersBase):
-    """Model for creating users"""
-    created_by: Optional[str] = Field(None, description="ID of the user creating this users")
+class SettingsCreate(SettingsBase):
+    """Model for creating settings"""
+    created_by: Optional[str] = Field(None, description="ID of the user creating this settings")
     
     class Config:
         schema_extra = {
             "example": {
-                "name": "Sample Users",
-                "description": "This is a sample users",
+                "name": "Sample Settings",
+                "description": "This is a sample settings",
                 "status": "active",
                 "type": "standard",
                 "tags": ["sample", "demo"],
@@ -75,15 +75,15 @@ class UsersCreate(UsersBase):
             }
         }
 
-class UsersUpdate(BaseModel):
-    """Model for updating users"""
+class SettingsUpdate(BaseModel):
+    """Model for updating settings"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
-    status: Optional[UsersStatus] = None
-    type: Optional[UsersType] = None
+    status: Optional[SettingsStatus] = None
+    type: Optional[SettingsType] = None
     tags: Optional[List[str]] = None
     metadata: Optional[Dict[str, Any]] = None
-    updated_by: Optional[str] = Field(None, description="ID of the user updating this users")
+    updated_by: Optional[str] = Field(None, description="ID of the user updating this settings")
     
     @validator('name')
     def validate_name(cls, v):
@@ -91,24 +91,24 @@ class UsersUpdate(BaseModel):
             raise ValueError('Name cannot be empty or only whitespace')
         return v.strip() if v else v
 
-class UsersInDB(UsersBase):
-    """Model for users in database"""
+class SettingsInDB(SettingsBase):
+    """Model for settings in database"""
     id: int = Field(..., description="Unique identifier")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
-    created_by: Optional[str] = Field(None, description="ID of the user who created this users")
-    updated_by: Optional[str] = Field(None, description="ID of the user who last updated this users")
+    created_by: Optional[str] = Field(None, description="ID of the user who created this settings")
+    updated_by: Optional[str] = Field(None, description="ID of the user who last updated this settings")
     version: int = Field(default=1, description="Version number for optimistic locking")
 
-class UsersResponse(UsersInDB):
-    """Model for users API response"""
+class SettingsResponse(SettingsInDB):
+    """Model for settings API response"""
     
     class Config:
         schema_extra = {
             "example": {
                 "id": 1,
-                "name": "Sample Users",
-                "description": "This is a sample users",
+                "name": "Sample Settings",
+                "description": "This is a sample settings",
                 "status": "active",
                 "type": "standard",
                 "tags": ["sample", "demo"],
@@ -121,9 +121,9 @@ class UsersResponse(UsersInDB):
             }
         }
 
-class UsersList(BaseModel):
-    """Model for paginated users list response"""
-    items: List[UsersResponse]
+class SettingsList(BaseModel):
+    """Model for paginated settings list response"""
+    items: List[SettingsResponse]
     total: int
     page: int
     per_page: int
@@ -131,8 +131,8 @@ class UsersList(BaseModel):
     has_next: bool
     has_prev: bool
 
-class UsersStats(BaseModel):
-    """Model for users statistics"""
+class SettingsStats(BaseModel):
+    """Model for settings statistics"""
     total_count: int
     active_count: int
     inactive_count: int
@@ -168,15 +168,15 @@ def rate_limit(max_calls: int, time_window: int):
 # Main CRUD endpoints
 @router.get(
     "/",
-    response_model=UsersList,
-    summary="Get all userss",
-    description="Retrieve a paginated list of all userss with optional filtering"
+    response_model=SettingsList,
+    summary="Get all settingss",
+    description="Retrieve a paginated list of all settingss with optional filtering"
 )
 @rate_limit(max_calls=100, time_window=60)
-async def get_userss(
+async def get_settingss(
     pagination: dict = Depends(validate_pagination),
-    status: Optional[UsersStatus] = Query(None, description="Filter by status"),
-    type: Optional[UsersType] = Query(None, description="Filter by type"),
+    status: Optional[SettingsStatus] = Query(None, description="Filter by status"),
+    type: Optional[SettingsType] = Query(None, description="Filter by type"),
     search: Optional[str] = Query(None, min_length=1, description="Search in name and description"),
     tags: Optional[str] = Query(None, description="Comma-separated list of tags to filter by"),
     created_after: Optional[datetime] = Query(None, description="Filter items created after this date"),
@@ -185,9 +185,9 @@ async def get_userss(
     sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$", description="Sort order"),
     current_user: str = Depends(get_current_user)
 ):
-    """Get all userss with advanced filtering and pagination"""
+    """Get all settingss with advanced filtering and pagination"""
     try:
-        logger.info(f"Fetching userss for user {current_user} with filters: status={status}, type={type}, search={search}")
+        logger.info(f"Fetching settingss for user {current_user} with filters: status={status}, type={type}, search={search}")
         
         # Build filters
         filters = {}
@@ -207,12 +207,12 @@ async def get_userss(
         # TODO: Implement actual database query with filters
         # Mock response for now
         mock_items = [
-            UsersResponse(
+            SettingsResponse(
                 id=i,
-                name=f"Sample Users {i}",
-                description=f"Description for users {i}",
-                status=UsersStatus.ACTIVE,
-                type=UsersType.STANDARD,
+                name=f"Sample Settings {i}",
+                description=f"Description for settings {i}",
+                status=SettingsStatus.ACTIVE,
+                type=SettingsType.STANDARD,
                 tags=["sample", f"tag{i}"],
                 metadata={"index": i},
                 created_at=datetime.utcnow() - timedelta(days=i),
@@ -225,7 +225,7 @@ async def get_userss(
         total = 100  # Mock total count
         pages = (total + pagination["per_page"] - 1) // pagination["per_page"]
         
-        response = UsersList(
+        response = SettingsList(
             items=mock_items,
             total=total,
             page=pagination["page"],
@@ -235,38 +235,38 @@ async def get_userss(
             has_prev=pagination["page"] > 1
         )
         
-        logger.info(f"Successfully fetched {len(mock_items)} userss")
+        logger.info(f"Successfully fetched {len(mock_items)} settingss")
         return response
         
     except Exception as e:
-        logger.error(f"Error fetching userss: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching userss: {str(e)}")
+        logger.error(f"Error fetching settingss: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching settingss: {str(e)}")
 
 @router.get(
     "/{item_id}",
-    response_model=UsersResponse,
-    summary="Get users by ID",
-    description="Retrieve a specific users by its ID"
+    response_model=SettingsResponse,
+    summary="Get settings by ID",
+    description="Retrieve a specific settings by its ID"
 )
-async def get_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to retrieve"),
+async def get_settings(
+    item_id: int = Path(..., gt=0, description="The ID of the settings to retrieve"),
     current_user: str = Depends(get_current_user)
 ):
-    """Get users by ID"""
+    """Get settings by ID"""
     try:
-        logger.info(f"Fetching users {item_id} for user {current_user}")
+        logger.info(f"Fetching settings {item_id} for user {current_user}")
         
         # TODO: Implement actual database query
         # Mock response for now
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Settings not found")
         
-        response = UsersResponse(
+        response = SettingsResponse(
             id=item_id,
-            name=f"Sample Users {item_id}",
-            description=f"Description for users {item_id}",
-            status=UsersStatus.ACTIVE,
-            type=UsersType.STANDARD,
+            name=f"Sample Settings {item_id}",
+            description=f"Description for settings {item_id}",
+            status=SettingsStatus.ACTIVE,
+            type=SettingsType.STANDARD,
             tags=["sample"],
             metadata={"id": item_id},
             created_at=datetime.utcnow() - timedelta(days=1),
@@ -274,35 +274,35 @@ async def get_users(
             version=1
         )
         
-        logger.info(f"Successfully fetched users {item_id}")
+        logger.info(f"Successfully fetched settings {item_id}")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching users: {str(e)}")
+        logger.error(f"Error fetching settings {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching settings: {str(e)}")
 
 @router.post(
     "/",
-    response_model=UsersResponse,
+    response_model=SettingsResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create new users",
-    description="Create a new users with the provided data"
+    summary="Create new settings",
+    description="Create a new settings with the provided data"
 )
-async def create_users(
-    request: UsersCreate,
+async def create_settings(
+    request: SettingsCreate,
     current_user: str = Depends(get_current_user)
 ):
-    """Create new users"""
+    """Create new settings"""
     try:
-        logger.info(f"Creating new users for user {current_user}: {request.name}")
+        logger.info(f"Creating new settings for user {current_user}: {request.name}")
         
         # TODO: Implement actual database creation
         # Mock response for now
         new_id = 12345  # Mock generated ID
         
-        response = UsersResponse(
+        response = SettingsResponse(
             id=new_id,
             **request.dict(),
             created_at=datetime.utcnow(),
@@ -310,40 +310,40 @@ async def create_users(
             version=1
         )
         
-        logger.info(f"Successfully created users {new_id}")
+        logger.info(f"Successfully created settings {new_id}")
         return response
         
     except Exception as e:
-        logger.error(f"Error creating users: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error creating users: {str(e)}")
+        logger.error(f"Error creating settings: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating settings: {str(e)}")
 
 @router.put(
     "/{item_id}",
-    response_model=UsersResponse,
-    summary="Update users",
-    description="Update an existing users with the provided data"
+    response_model=SettingsResponse,
+    summary="Update settings",
+    description="Update an existing settings with the provided data"
 )
-async def update_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to update"),
-    request: UsersUpdate = ...,
+async def update_settings(
+    item_id: int = Path(..., gt=0, description="The ID of the settings to update"),
+    request: SettingsUpdate = ...,
     current_user: str = Depends(get_current_user)
 ):
-    """Update users by ID"""
+    """Update settings by ID"""
     try:
-        logger.info(f"Updating users {item_id} for user {current_user}")
+        logger.info(f"Updating settings {item_id} for user {current_user}")
         
         # TODO: Implement actual database update
         # Check if item exists first
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Settings not found")
         
         # Mock response for now
-        response = UsersResponse(
+        response = SettingsResponse(
             id=item_id,
-            name=request.name or f"Updated Users {item_id}",
-            description=request.description or f"Updated description for users {item_id}",
-            status=request.status or UsersStatus.ACTIVE,
-            type=request.type or UsersType.STANDARD,
+            name=request.name or f"Updated Settings {item_id}",
+            description=request.description or f"Updated description for settings {item_id}",
+            status=request.status or SettingsStatus.ACTIVE,
+            type=request.type or SettingsType.STANDARD,
             tags=request.tags or ["updated"],
             metadata=request.metadata or {"updated": True},
             created_at=datetime.utcnow() - timedelta(days=1),
@@ -353,43 +353,43 @@ async def update_users(
             version=2
         )
         
-        logger.info(f"Successfully updated users {item_id}")
+        logger.info(f"Successfully updated settings {item_id}")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error updating users: {str(e)}")
+        logger.error(f"Error updating settings {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating settings: {str(e)}")
 
 @router.patch(
     "/{item_id}",
-    response_model=UsersResponse,
-    summary="Partially update users",
-    description="Partially update an existing users with only the provided fields"
+    response_model=SettingsResponse,
+    summary="Partially update settings",
+    description="Partially update an existing settings with only the provided fields"
 )
-async def patch_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to patch"),
-    request: UsersUpdate = ...,
+async def patch_settings(
+    item_id: int = Path(..., gt=0, description="The ID of the settings to patch"),
+    request: SettingsUpdate = ...,
     current_user: str = Depends(get_current_user)
 ):
-    """Partially update users by ID"""
+    """Partially update settings by ID"""
     try:
-        logger.info(f"Patching users {item_id} for user {current_user}")
+        logger.info(f"Patching settings {item_id} for user {current_user}")
         
         # TODO: Implement actual database patch
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Settings not found")
         
         # Mock response - only update provided fields
         updated_fields = {k: v for k, v in request.dict().items() if v is not None}
         
-        response = UsersResponse(
+        response = SettingsResponse(
             id=item_id,
-            name=f"Patched Users {item_id}",
-            description=f"Patched description for users {item_id}",
-            status=UsersStatus.ACTIVE,
-            type=UsersType.STANDARD,
+            name=f"Patched Settings {item_id}",
+            description=f"Patched description for settings {item_id}",
+            status=SettingsStatus.ACTIVE,
+            type=SettingsType.STANDARD,
             tags=["patched"],
             metadata={"patched_fields": list(updated_fields.keys())},
             created_at=datetime.utcnow() - timedelta(days=1),
@@ -399,65 +399,65 @@ async def patch_users(
             version=3
         )
         
-        logger.info(f"Successfully patched users {item_id} with fields: {list(updated_fields.keys())}")
+        logger.info(f"Successfully patched settings {item_id} with fields: {list(updated_fields.keys())}")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error patching users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error patching users: {str(e)}")
+        logger.error(f"Error patching settings {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error patching settings: {str(e)}")
 
 @router.delete(
     "/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete users",
-    description="Delete an existing users by its ID"
+    summary="Delete settings",
+    description="Delete an existing settings by its ID"
 )
-async def delete_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to delete"),
+async def delete_settings(
+    item_id: int = Path(..., gt=0, description="The ID of the settings to delete"),
     force: bool = Query(False, description="Force delete without moving to trash"),
     current_user: str = Depends(get_current_user)
 ):
-    """Delete users by ID"""
+    """Delete settings by ID"""
     try:
-        logger.info(f"Deleting users {item_id} for user {current_user} (force={force})")
+        logger.info(f"Deleting settings {item_id} for user {current_user} (force={force})")
         
         # TODO: Implement actual database deletion
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Settings not found")
         
         if force:
             # Hard delete
-            logger.info(f"Force deleting users {item_id}")
+            logger.info(f"Force deleting settings {item_id}")
         else:
             # Soft delete (mark as deleted)
-            logger.info(f"Soft deleting users {item_id}")
+            logger.info(f"Soft deleting settings {item_id}")
         
-        logger.info(f"Successfully deleted users {item_id}")
+        logger.info(f"Successfully deleted settings {item_id}")
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error deleting users: {str(e)}")
+        logger.error(f"Error deleting settings {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting settings: {str(e)}")
 
 # Additional utility endpoints
 @router.get(
     "/stats",
-    response_model=UsersStats,
-    summary="Get users statistics",
-    description="Get comprehensive statistics about userss"
+    response_model=SettingsStats,
+    summary="Get settings statistics",
+    description="Get comprehensive statistics about settingss"
 )
-async def get_users_stats(
+async def get_settings_stats(
     current_user: str = Depends(get_current_user)
 ):
-    """Get users statistics"""
+    """Get settings statistics"""
     try:
-        logger.info(f"Fetching users statistics for user {current_user}")
+        logger.info(f"Fetching settings statistics for user {current_user}")
         
         # TODO: Implement actual statistics calculation
-        stats = UsersStats(
+        stats = SettingsStats(
             total_count=1250,
             active_count=1000,
             inactive_count=150,
@@ -475,26 +475,26 @@ async def get_users_stats(
             created_this_month=420
         )
         
-        logger.info(f"Successfully calculated users statistics")
+        logger.info(f"Successfully calculated settings statistics")
         return stats
         
     except Exception as e:
-        logger.error(f"Error calculating users statistics: {str(e)}")
+        logger.error(f"Error calculating settings statistics: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error calculating statistics: {str(e)}")
 
 @router.post(
     "/bulk",
-    response_model=List[UsersResponse],
-    summary="Bulk create userss",
-    description="Create multiple userss in a single request"
+    response_model=List[SettingsResponse],
+    summary="Bulk create settingss",
+    description="Create multiple settingss in a single request"
 )
-async def bulk_create_userss(
-    requests: List[UsersCreate],
+async def bulk_create_settingss(
+    requests: List[SettingsCreate],
     current_user: str = Depends(get_current_user)
 ):
-    """Bulk create userss"""
+    """Bulk create settingss"""
     try:
-        logger.info(f"Bulk creating {len(requests)} userss for user {current_user}")
+        logger.info(f"Bulk creating {len(requests)} settingss for user {current_user}")
         
         if len(requests) > 100:
             raise HTTPException(status_code=400, detail="Maximum 100 items allowed per bulk operation")
@@ -502,7 +502,7 @@ async def bulk_create_userss(
         # TODO: Implement actual bulk database creation
         responses = []
         for i, request in enumerate(requests):
-            response = UsersResponse(
+            response = SettingsResponse(
                 id=10000 + i,
                 **request.dict(),
                 created_at=datetime.utcnow(),
@@ -511,39 +511,39 @@ async def bulk_create_userss(
             )
             responses.append(response)
         
-        logger.info(f"Successfully bulk created {len(responses)} userss")
+        logger.info(f"Successfully bulk created {len(responses)} settingss")
         return responses
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error bulk creating userss: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error bulk creating userss: {str(e)}")
+        logger.error(f"Error bulk creating settingss: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error bulk creating settingss: {str(e)}")
 
 @router.post(
     "/search",
-    response_model=UsersList,
-    summary="Advanced search userss",
-    description="Perform advanced search across userss with complex criteria"
+    response_model=SettingsList,
+    summary="Advanced search settingss",
+    description="Perform advanced search across settingss with complex criteria"
 )
-async def search_userss(
+async def search_settingss(
     search_query: Dict[str, Any],
     pagination: dict = Depends(validate_pagination),
     current_user: str = Depends(get_current_user)
 ):
-    """Advanced search for userss"""
+    """Advanced search for settingss"""
     try:
-        logger.info(f"Advanced search for userss by user {current_user}: {search_query}")
+        logger.info(f"Advanced search for settingss by user {current_user}: {search_query}")
         
         # TODO: Implement actual advanced search logic
         # Mock response for now
         mock_items = [
-            UsersResponse(
+            SettingsResponse(
                 id=i,
-                name=f"Search Result Users {i}",
+                name=f"Search Result Settings {i}",
                 description=f"Matched search criteria: {search_query}",
-                status=UsersStatus.ACTIVE,
-                type=UsersType.STANDARD,
+                status=SettingsStatus.ACTIVE,
+                type=SettingsType.STANDARD,
                 tags=["search", "result"],
                 metadata={"search_score": 0.95 - (i * 0.1)},
                 created_at=datetime.utcnow() - timedelta(days=i),
@@ -553,7 +553,7 @@ async def search_userss(
             for i in range(1, 6)
         ]
         
-        response = UsersList(
+        response = SettingsList(
             items=mock_items,
             total=5,
             page=pagination["page"],
