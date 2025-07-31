@@ -1,6 +1,8 @@
 import os
 import sys
 import time
+import json
+import subprocess
 from datetime import datetime
 
 class SprintRunner:
@@ -38,7 +40,204 @@ class SprintRunner:
     def _sync_issues(self):
         '''Sync with GitHub issues'''
         print("🔄 Syncing issues...")
-        # TODO: Implement issue sync
+        
+        # Get the tasks that will be prioritized
+        upcoming_tasks = self._get_upcoming_tasks()
+        
+        # Create GitHub issues for each task
+        for task in upcoming_tasks:
+            self._create_github_issue(task)
+        
+        print(f"✅ Created {len(upcoming_tasks)} GitHub issues")
+        
+    def _get_upcoming_tasks(self):
+        '''Get tasks that will be worked on in this sprint'''
+        if self.agent == 'BACKEND_AGENT':
+            return [
+                {'title': 'User Management API', 'type': 'api', 'endpoint': '/api/users'},
+                {'title': 'Learning Session Model', 'type': 'model', 'model_name': 'LearningSession'},
+                {'title': 'Tutor Service', 'type': 'service', 'service_name': 'TutorService'},
+                {'title': 'Analytics API', 'type': 'api', 'endpoint': '/api/analytics'},
+                {'title': 'Family Management Model', 'type': 'model', 'model_name': 'FamilyManagement'},
+                {'title': 'Parental Control Service', 'type': 'service', 'service_name': 'ParentalControlService'},
+            ]
+        else:
+            # Frontend tasks
+            return [
+                {'title': 'Dashboard Component', 'type': 'component', 'component_name': 'Dashboard'},
+                {'title': 'Learning Interface', 'type': 'component', 'component_name': 'LearningInterface'},
+                {'title': 'Parent Control Panel', 'type': 'component', 'component_name': 'ParentControlPanel'},
+            ]
+    
+    def _create_github_issue(self, task):
+        '''Create a GitHub issue for a task'''
+        try:
+            # Skip if required env vars are not set or are dummy values
+            github_token = os.getenv('GITHUB_TOKEN')
+            repo_owner = os.getenv('REPO_OWNER')
+            repo_name = os.getenv('REPO_NAME')
+            
+            if not github_token or not repo_owner or not repo_name or github_token == 'dummy_token':
+                print(f"⚠️ Skipping GitHub issue creation for '{task['title']}' - missing or dummy credentials")
+                return
+                
+            # Generate issue title and labels
+            if task['type'] == 'api':
+                title = f"🔌 Implement {task['title']}"
+                labels = ['backend', 'api', 'enhancement']
+            elif task['type'] == 'model':
+                title = f"🗃️ Create {task['title']}"
+                labels = ['backend', 'model', 'enhancement']
+            elif task['type'] == 'service':
+                title = f"⚙️ Implement {task['title']}"
+                labels = ['backend', 'service', 'enhancement']
+            elif task['type'] == 'component':
+                title = f"🎨 Create {task['title']}"
+                labels = ['frontend', 'component', 'enhancement']
+            else:
+                title = f"📋 {task['title']}"
+                labels = [self.agent.lower().replace('_agent', ''), 'enhancement']
+            
+            # Generate issue body
+            body = self._generate_issue_body(task)
+            
+            # Create issue data
+            issue_data = {
+                'title': title,
+                'body': body,
+                'labels': labels
+            }
+            
+            # Create issue via GitHub API
+            curl_cmd = [
+                'curl', '-s', '-X', 'POST',
+                '-H', f'Authorization: token {github_token}',
+                '-H', 'Accept: application/vnd.github.v3+json',
+                '-d', json.dumps(issue_data),
+                f'https://api.github.com/repos/{repo_owner}/{repo_name}/issues'
+            ]
+            
+            result = subprocess.run(curl_cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                try:
+                    response = json.loads(result.stdout)
+                    if 'html_url' in response:
+                        print(f"✅ Created issue: {title} ({response['html_url']})")
+                    else:
+                        print(f"⚠️ Issue creation response: {result.stdout}")
+                except json.JSONDecodeError:
+                    print(f"⚠️ Issue created but couldn't parse response for: {title}")
+            else:
+                print(f"❌ Failed to create issue '{title}': {result.stderr}")
+                
+        except Exception as e:
+            print(f"❌ Error creating issue for '{task['title']}': {str(e)}")
+    
+    def _generate_issue_body(self, task):
+        '''Generate issue body for a task'''
+        sprint_info = f"Sprint #{self.sprint_count} - {self.agent}"
+        
+        if task['type'] == 'api':
+            body = f"""## 🤖 Auto-Generated by {self.agent}
+
+### Task Type: API Endpoint Implementation
+
+### Details:
+- **Endpoint**: `{task.get('endpoint', 'N/A')}`
+- **Sprint**: {sprint_info}
+- **Priority**: High
+
+### Requirements:
+- [ ] Implement FastAPI endpoint
+- [ ] Add request/response models
+- [ ] Include proper error handling
+- [ ] Add endpoint to main app router
+- [ ] Test endpoint functionality
+
+### Implementation Notes:
+This endpoint should follow RESTful principles and include:
+- GET, POST, PUT, DELETE operations as appropriate
+- Proper HTTP status codes
+- Input validation using Pydantic models
+- Error handling with meaningful messages
+
+### Auto-Sync ID: {datetime.now().isoformat()}
+"""
+        elif task['type'] == 'model':
+            body = f"""## 🤖 Auto-Generated by {self.agent}
+
+### Task Type: Data Model Creation
+
+### Details:
+- **Model Name**: `{task.get('model_name', 'N/A')}`
+- **Sprint**: {sprint_info}
+- **Priority**: High
+
+### Requirements:
+- [ ] Create Pydantic models for data validation
+- [ ] Include base, create, update, and response models
+- [ ] Add database operations class
+- [ ] Include proper field validation
+- [ ] Add enum types where appropriate
+
+### Implementation Notes:
+This model should include:
+- Base model with common fields
+- Create model for new record creation
+- Update model for partial updates
+- Database operations for CRUD functionality
+- Proper typing and validation
+
+### Auto-Sync ID: {datetime.now().isoformat()}
+"""
+        elif task['type'] == 'service':
+            body = f"""## 🤖 Auto-Generated by {self.agent}
+
+### Task Type: Service Layer Implementation
+
+### Details:
+- **Service Name**: `{task.get('service_name', 'N/A')}`
+- **Sprint**: {sprint_info}
+- **Priority**: High
+
+### Requirements:
+- [ ] Implement service class with business logic
+- [ ] Add CRUD operations
+- [ ] Include proper error handling and logging
+- [ ] Add data validation methods
+- [ ] Integrate with corresponding models
+
+### Implementation Notes:
+This service should provide:
+- Business logic layer between API and data models
+- Proper error handling and logging
+- Data validation and transformation
+- Integration with database operations
+- Async/await patterns for better performance
+
+### Auto-Sync ID: {datetime.now().isoformat()}
+"""
+        else:
+            body = f"""## 🤖 Auto-Generated by {self.agent}
+
+### Task Type: {task['type'].title()}
+
+### Details:
+- **Task**: {task['title']}
+- **Sprint**: {sprint_info}
+- **Priority**: Medium
+
+### Requirements:
+- [ ] Implement core functionality
+- [ ] Add appropriate tests
+- [ ] Update documentation
+- [ ] Follow project coding standards
+
+### Auto-Sync ID: {datetime.now().isoformat()}
+"""
+        
+        return body
         
     def _prioritize_tasks(self):
         '''Prioritize and return tasks'''
