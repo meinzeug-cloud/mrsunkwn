@@ -5,7 +5,7 @@ echo "🚀 Setting up Dual-Agent System..."
 
 # Set environment variables
 export AGENT_ROLE=SETUP_AGENT
-export GITHUB_TOKEN=${GITHUB_TOKEN:-"your_github_token_here"}
+export GITHUB_TOKEN=${GITHUB_TOKEN:-"github_pat_...."}
 export REPO_OWNER=${REPO_OWNER:-"meinzeug"}
 export REPO_NAME=${REPO_NAME:-"mrsunkwn"}
 
