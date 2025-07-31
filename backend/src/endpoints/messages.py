@@ -13,37 +13,37 @@ logger = logging.getLogger(__name__)
 
 # Create router with prefix and tags
 router = APIRouter(
-    prefix="/api/users",
-    tags=["users"],
+    prefix="/api/messages",
+    tags=["messages"],
     responses={
-        404: {"description": "Users not found"},
+        404: {"description": "Messages not found"},
         422: {"description": "Validation error"},
         500: {"description": "Internal server error"}
     }
 )
 
 # Enums for status and types
-class UsersStatus(str, Enum):
+class MessagesStatus(str, Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     PENDING = "pending"
     ARCHIVED = "archived"
     DELETED = "deleted"
 
-class UsersType(str, Enum):
+class MessagesType(str, Enum):
     STANDARD = "standard"
     PREMIUM = "premium"
     ENTERPRISE = "enterprise"
     CUSTOM = "custom"
 
 # Base models
-class UsersBase(BaseModel):
-    """Base model for users"""
-    name: str = Field(..., min_length=1, max_length=255, description="Name of the users")
-    description: Optional[str] = Field(None, max_length=1000, description="Description of the users")
-    status: UsersStatus = Field(default=UsersStatus.ACTIVE, description="Status of the users")
-    type: UsersType = Field(default=UsersType.STANDARD, description="Type of the users")
-    tags: Optional[List[str]] = Field(default_factory=list, description="Tags associated with the users")
+class MessagesBase(BaseModel):
+    """Base model for messages"""
+    name: str = Field(..., min_length=1, max_length=255, description="Name of the messages")
+    description: Optional[str] = Field(None, max_length=1000, description="Description of the messages")
+    status: MessagesStatus = Field(default=MessagesStatus.ACTIVE, description="Status of the messages")
+    type: MessagesType = Field(default=MessagesType.STANDARD, description="Type of the messages")
+    tags: Optional[List[str]] = Field(default_factory=list, description="Tags associated with the messages")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
     
     @validator('name')
@@ -58,15 +58,15 @@ class UsersBase(BaseModel):
             raise ValueError('Maximum 10 tags allowed')
         return v
 
-class UsersCreate(UsersBase):
-    """Model for creating users"""
-    created_by: Optional[str] = Field(None, description="ID of the user creating this users")
+class MessagesCreate(MessagesBase):
+    """Model for creating messages"""
+    created_by: Optional[str] = Field(None, description="ID of the user creating this messages")
     
     class Config:
         schema_extra = {
             "example": {
-                "name": "Sample Users",
-                "description": "This is a sample users",
+                "name": "Sample Messages",
+                "description": "This is a sample messages",
                 "status": "active",
                 "type": "standard",
                 "tags": ["sample", "demo"],
@@ -75,15 +75,15 @@ class UsersCreate(UsersBase):
             }
         }
 
-class UsersUpdate(BaseModel):
-    """Model for updating users"""
+class MessagesUpdate(BaseModel):
+    """Model for updating messages"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
-    status: Optional[UsersStatus] = None
-    type: Optional[UsersType] = None
+    status: Optional[MessagesStatus] = None
+    type: Optional[MessagesType] = None
     tags: Optional[List[str]] = None
     metadata: Optional[Dict[str, Any]] = None
-    updated_by: Optional[str] = Field(None, description="ID of the user updating this users")
+    updated_by: Optional[str] = Field(None, description="ID of the user updating this messages")
     
     @validator('name')
     def validate_name(cls, v):
@@ -91,24 +91,24 @@ class UsersUpdate(BaseModel):
             raise ValueError('Name cannot be empty or only whitespace')
         return v.strip() if v else v
 
-class UsersInDB(UsersBase):
-    """Model for users in database"""
+class MessagesInDB(MessagesBase):
+    """Model for messages in database"""
     id: int = Field(..., description="Unique identifier")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
-    created_by: Optional[str] = Field(None, description="ID of the user who created this users")
-    updated_by: Optional[str] = Field(None, description="ID of the user who last updated this users")
+    created_by: Optional[str] = Field(None, description="ID of the user who created this messages")
+    updated_by: Optional[str] = Field(None, description="ID of the user who last updated this messages")
     version: int = Field(default=1, description="Version number for optimistic locking")
 
-class UsersResponse(UsersInDB):
-    """Model for users API response"""
+class MessagesResponse(MessagesInDB):
+    """Model for messages API response"""
     
     class Config:
         schema_extra = {
             "example": {
                 "id": 1,
-                "name": "Sample Users",
-                "description": "This is a sample users",
+                "name": "Sample Messages",
+                "description": "This is a sample messages",
                 "status": "active",
                 "type": "standard",
                 "tags": ["sample", "demo"],
@@ -121,9 +121,9 @@ class UsersResponse(UsersInDB):
             }
         }
 
-class UsersList(BaseModel):
-    """Model for paginated users list response"""
-    items: List[UsersResponse]
+class MessagesList(BaseModel):
+    """Model for paginated messages list response"""
+    items: List[MessagesResponse]
     total: int
     page: int
     per_page: int
@@ -131,8 +131,8 @@ class UsersList(BaseModel):
     has_next: bool
     has_prev: bool
 
-class UsersStats(BaseModel):
-    """Model for users statistics"""
+class MessagesStats(BaseModel):
+    """Model for messages statistics"""
     total_count: int
     active_count: int
     inactive_count: int
@@ -168,15 +168,15 @@ def rate_limit(max_calls: int, time_window: int):
 # Main CRUD endpoints
 @router.get(
     "/",
-    response_model=UsersList,
-    summary="Get all userss",
-    description="Retrieve a paginated list of all userss with optional filtering"
+    response_model=MessagesList,
+    summary="Get all messagess",
+    description="Retrieve a paginated list of all messagess with optional filtering"
 )
 @rate_limit(max_calls=100, time_window=60)
-async def get_userss(
+async def get_messagess(
     pagination: dict = Depends(validate_pagination),
-    status: Optional[UsersStatus] = Query(None, description="Filter by status"),
-    type: Optional[UsersType] = Query(None, description="Filter by type"),
+    status: Optional[MessagesStatus] = Query(None, description="Filter by status"),
+    type: Optional[MessagesType] = Query(None, description="Filter by type"),
     search: Optional[str] = Query(None, min_length=1, description="Search in name and description"),
     tags: Optional[str] = Query(None, description="Comma-separated list of tags to filter by"),
     created_after: Optional[datetime] = Query(None, description="Filter items created after this date"),
@@ -185,9 +185,9 @@ async def get_userss(
     sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$", description="Sort order"),
     current_user: str = Depends(get_current_user)
 ):
-    """Get all userss with advanced filtering and pagination"""
+    """Get all messagess with advanced filtering and pagination"""
     try:
-        logger.info(f"Fetching userss for user {current_user} with filters: status={status}, type={type}, search={search}")
+        logger.info(f"Fetching messagess for user {current_user} with filters: status={status}, type={type}, search={search}")
         
         # Build filters
         filters = {}
@@ -207,12 +207,12 @@ async def get_userss(
         # TODO: Implement actual database query with filters
         # Mock response for now
         mock_items = [
-            UsersResponse(
+            MessagesResponse(
                 id=i,
-                name=f"Sample Users {i}",
-                description=f"Description for users {i}",
-                status=UsersStatus.ACTIVE,
-                type=UsersType.STANDARD,
+                name=f"Sample Messages {i}",
+                description=f"Description for messages {i}",
+                status=MessagesStatus.ACTIVE,
+                type=MessagesType.STANDARD,
                 tags=["sample", f"tag{i}"],
                 metadata={"index": i},
                 created_at=datetime.utcnow() - timedelta(days=i),
@@ -225,7 +225,7 @@ async def get_userss(
         total = 100  # Mock total count
         pages = (total + pagination["per_page"] - 1) // pagination["per_page"]
         
-        response = UsersList(
+        response = MessagesList(
             items=mock_items,
             total=total,
             page=pagination["page"],
@@ -235,38 +235,38 @@ async def get_userss(
             has_prev=pagination["page"] > 1
         )
         
-        logger.info(f"Successfully fetched {len(mock_items)} userss")
+        logger.info(f"Successfully fetched {len(mock_items)} messagess")
         return response
         
     except Exception as e:
-        logger.error(f"Error fetching userss: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching userss: {str(e)}")
+        logger.error(f"Error fetching messagess: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching messagess: {str(e)}")
 
 @router.get(
     "/{item_id}",
-    response_model=UsersResponse,
-    summary="Get users by ID",
-    description="Retrieve a specific users by its ID"
+    response_model=MessagesResponse,
+    summary="Get messages by ID",
+    description="Retrieve a specific messages by its ID"
 )
-async def get_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to retrieve"),
+async def get_messages(
+    item_id: int = Path(..., gt=0, description="The ID of the messages to retrieve"),
     current_user: str = Depends(get_current_user)
 ):
-    """Get users by ID"""
+    """Get messages by ID"""
     try:
-        logger.info(f"Fetching users {item_id} for user {current_user}")
+        logger.info(f"Fetching messages {item_id} for user {current_user}")
         
         # TODO: Implement actual database query
         # Mock response for now
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Messages not found")
         
-        response = UsersResponse(
+        response = MessagesResponse(
             id=item_id,
-            name=f"Sample Users {item_id}",
-            description=f"Description for users {item_id}",
-            status=UsersStatus.ACTIVE,
-            type=UsersType.STANDARD,
+            name=f"Sample Messages {item_id}",
+            description=f"Description for messages {item_id}",
+            status=MessagesStatus.ACTIVE,
+            type=MessagesType.STANDARD,
             tags=["sample"],
             metadata={"id": item_id},
             created_at=datetime.utcnow() - timedelta(days=1),
@@ -274,35 +274,35 @@ async def get_users(
             version=1
         )
         
-        logger.info(f"Successfully fetched users {item_id}")
+        logger.info(f"Successfully fetched messages {item_id}")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching users: {str(e)}")
+        logger.error(f"Error fetching messages {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching messages: {str(e)}")
 
 @router.post(
     "/",
-    response_model=UsersResponse,
+    response_model=MessagesResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create new users",
-    description="Create a new users with the provided data"
+    summary="Create new messages",
+    description="Create a new messages with the provided data"
 )
-async def create_users(
-    request: UsersCreate,
+async def create_messages(
+    request: MessagesCreate,
     current_user: str = Depends(get_current_user)
 ):
-    """Create new users"""
+    """Create new messages"""
     try:
-        logger.info(f"Creating new users for user {current_user}: {request.name}")
+        logger.info(f"Creating new messages for user {current_user}: {request.name}")
         
         # TODO: Implement actual database creation
         # Mock response for now
         new_id = 12345  # Mock generated ID
         
-        response = UsersResponse(
+        response = MessagesResponse(
             id=new_id,
             **request.dict(),
             created_at=datetime.utcnow(),
@@ -310,40 +310,40 @@ async def create_users(
             version=1
         )
         
-        logger.info(f"Successfully created users {new_id}")
+        logger.info(f"Successfully created messages {new_id}")
         return response
         
     except Exception as e:
-        logger.error(f"Error creating users: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error creating users: {str(e)}")
+        logger.error(f"Error creating messages: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating messages: {str(e)}")
 
 @router.put(
     "/{item_id}",
-    response_model=UsersResponse,
-    summary="Update users",
-    description="Update an existing users with the provided data"
+    response_model=MessagesResponse,
+    summary="Update messages",
+    description="Update an existing messages with the provided data"
 )
-async def update_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to update"),
-    request: UsersUpdate = ...,
+async def update_messages(
+    item_id: int = Path(..., gt=0, description="The ID of the messages to update"),
+    request: MessagesUpdate = ...,
     current_user: str = Depends(get_current_user)
 ):
-    """Update users by ID"""
+    """Update messages by ID"""
     try:
-        logger.info(f"Updating users {item_id} for user {current_user}")
+        logger.info(f"Updating messages {item_id} for user {current_user}")
         
         # TODO: Implement actual database update
         # Check if item exists first
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Messages not found")
         
         # Mock response for now
-        response = UsersResponse(
+        response = MessagesResponse(
             id=item_id,
-            name=request.name or f"Updated Users {item_id}",
-            description=request.description or f"Updated description for users {item_id}",
-            status=request.status or UsersStatus.ACTIVE,
-            type=request.type or UsersType.STANDARD,
+            name=request.name or f"Updated Messages {item_id}",
+            description=request.description or f"Updated description for messages {item_id}",
+            status=request.status or MessagesStatus.ACTIVE,
+            type=request.type or MessagesType.STANDARD,
             tags=request.tags or ["updated"],
             metadata=request.metadata or {"updated": True},
             created_at=datetime.utcnow() - timedelta(days=1),
@@ -353,43 +353,43 @@ async def update_users(
             version=2
         )
         
-        logger.info(f"Successfully updated users {item_id}")
+        logger.info(f"Successfully updated messages {item_id}")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error updating users: {str(e)}")
+        logger.error(f"Error updating messages {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating messages: {str(e)}")
 
 @router.patch(
     "/{item_id}",
-    response_model=UsersResponse,
-    summary="Partially update users",
-    description="Partially update an existing users with only the provided fields"
+    response_model=MessagesResponse,
+    summary="Partially update messages",
+    description="Partially update an existing messages with only the provided fields"
 )
-async def patch_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to patch"),
-    request: UsersUpdate = ...,
+async def patch_messages(
+    item_id: int = Path(..., gt=0, description="The ID of the messages to patch"),
+    request: MessagesUpdate = ...,
     current_user: str = Depends(get_current_user)
 ):
-    """Partially update users by ID"""
+    """Partially update messages by ID"""
     try:
-        logger.info(f"Patching users {item_id} for user {current_user}")
+        logger.info(f"Patching messages {item_id} for user {current_user}")
         
         # TODO: Implement actual database patch
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Messages not found")
         
         # Mock response - only update provided fields
         updated_fields = {k: v for k, v in request.dict().items() if v is not None}
         
-        response = UsersResponse(
+        response = MessagesResponse(
             id=item_id,
-            name=f"Patched Users {item_id}",
-            description=f"Patched description for users {item_id}",
-            status=UsersStatus.ACTIVE,
-            type=UsersType.STANDARD,
+            name=f"Patched Messages {item_id}",
+            description=f"Patched description for messages {item_id}",
+            status=MessagesStatus.ACTIVE,
+            type=MessagesType.STANDARD,
             tags=["patched"],
             metadata={"patched_fields": list(updated_fields.keys())},
             created_at=datetime.utcnow() - timedelta(days=1),
@@ -399,65 +399,65 @@ async def patch_users(
             version=3
         )
         
-        logger.info(f"Successfully patched users {item_id} with fields: {list(updated_fields.keys())}")
+        logger.info(f"Successfully patched messages {item_id} with fields: {list(updated_fields.keys())}")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error patching users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error patching users: {str(e)}")
+        logger.error(f"Error patching messages {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error patching messages: {str(e)}")
 
 @router.delete(
     "/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete users",
-    description="Delete an existing users by its ID"
+    summary="Delete messages",
+    description="Delete an existing messages by its ID"
 )
-async def delete_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to delete"),
+async def delete_messages(
+    item_id: int = Path(..., gt=0, description="The ID of the messages to delete"),
     force: bool = Query(False, description="Force delete without moving to trash"),
     current_user: str = Depends(get_current_user)
 ):
-    """Delete users by ID"""
+    """Delete messages by ID"""
     try:
-        logger.info(f"Deleting users {item_id} for user {current_user} (force={force})")
+        logger.info(f"Deleting messages {item_id} for user {current_user} (force={force})")
         
         # TODO: Implement actual database deletion
         if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
+            raise HTTPException(status_code=404, detail=f"Messages not found")
         
         if force:
             # Hard delete
-            logger.info(f"Force deleting users {item_id}")
+            logger.info(f"Force deleting messages {item_id}")
         else:
             # Soft delete (mark as deleted)
-            logger.info(f"Soft deleting users {item_id}")
+            logger.info(f"Soft deleting messages {item_id}")
         
-        logger.info(f"Successfully deleted users {item_id}")
+        logger.info(f"Successfully deleted messages {item_id}")
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error deleting users: {str(e)}")
+        logger.error(f"Error deleting messages {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting messages: {str(e)}")
 
 # Additional utility endpoints
 @router.get(
     "/stats",
-    response_model=UsersStats,
-    summary="Get users statistics",
-    description="Get comprehensive statistics about userss"
+    response_model=MessagesStats,
+    summary="Get messages statistics",
+    description="Get comprehensive statistics about messagess"
 )
-async def get_users_stats(
+async def get_messages_stats(
     current_user: str = Depends(get_current_user)
 ):
-    """Get users statistics"""
+    """Get messages statistics"""
     try:
-        logger.info(f"Fetching users statistics for user {current_user}")
+        logger.info(f"Fetching messages statistics for user {current_user}")
         
         # TODO: Implement actual statistics calculation
-        stats = UsersStats(
+        stats = MessagesStats(
             total_count=1250,
             active_count=1000,
             inactive_count=150,
@@ -475,26 +475,26 @@ async def get_users_stats(
             created_this_month=420
         )
         
-        logger.info(f"Successfully calculated users statistics")
+        logger.info(f"Successfully calculated messages statistics")
         return stats
         
     except Exception as e:
-        logger.error(f"Error calculating users statistics: {str(e)}")
+        logger.error(f"Error calculating messages statistics: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error calculating statistics: {str(e)}")
 
 @router.post(
     "/bulk",
-    response_model=List[UsersResponse],
-    summary="Bulk create userss",
-    description="Create multiple userss in a single request"
+    response_model=List[MessagesResponse],
+    summary="Bulk create messagess",
+    description="Create multiple messagess in a single request"
 )
-async def bulk_create_userss(
-    requests: List[UsersCreate],
+async def bulk_create_messagess(
+    requests: List[MessagesCreate],
     current_user: str = Depends(get_current_user)
 ):
-    """Bulk create userss"""
+    """Bulk create messagess"""
     try:
-        logger.info(f"Bulk creating {len(requests)} userss for user {current_user}")
+        logger.info(f"Bulk creating {len(requests)} messagess for user {current_user}")
         
         if len(requests) > 100:
             raise HTTPException(status_code=400, detail="Maximum 100 items allowed per bulk operation")
@@ -502,7 +502,7 @@ async def bulk_create_userss(
         # TODO: Implement actual bulk database creation
         responses = []
         for i, request in enumerate(requests):
-            response = UsersResponse(
+            response = MessagesResponse(
                 id=10000 + i,
                 **request.dict(),
                 created_at=datetime.utcnow(),
@@ -511,39 +511,39 @@ async def bulk_create_userss(
             )
             responses.append(response)
         
-        logger.info(f"Successfully bulk created {len(responses)} userss")
+        logger.info(f"Successfully bulk created {len(responses)} messagess")
         return responses
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error bulk creating userss: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error bulk creating userss: {str(e)}")
+        logger.error(f"Error bulk creating messagess: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error bulk creating messagess: {str(e)}")
 
 @router.post(
     "/search",
-    response_model=UsersList,
-    summary="Advanced search userss",
-    description="Perform advanced search across userss with complex criteria"
+    response_model=MessagesList,
+    summary="Advanced search messagess",
+    description="Perform advanced search across messagess with complex criteria"
 )
-async def search_userss(
+async def search_messagess(
     search_query: Dict[str, Any],
     pagination: dict = Depends(validate_pagination),
     current_user: str = Depends(get_current_user)
 ):
-    """Advanced search for userss"""
+    """Advanced search for messagess"""
     try:
-        logger.info(f"Advanced search for userss by user {current_user}: {search_query}")
+        logger.info(f"Advanced search for messagess by user {current_user}: {search_query}")
         
         # TODO: Implement actual advanced search logic
         # Mock response for now
         mock_items = [
-            UsersResponse(
+            MessagesResponse(
                 id=i,
-                name=f"Search Result Users {i}",
+                name=f"Search Result Messages {i}",
                 description=f"Matched search criteria: {search_query}",
-                status=UsersStatus.ACTIVE,
-                type=UsersType.STANDARD,
+                status=MessagesStatus.ACTIVE,
+                type=MessagesType.STANDARD,
                 tags=["search", "result"],
                 metadata={"search_score": 0.95 - (i * 0.1)},
                 created_at=datetime.utcnow() - timedelta(days=i),
@@ -553,7 +553,7 @@ async def search_userss(
             for i in range(1, 6)
         ]
         
-        response = UsersList(
+        response = MessagesList(
             items=mock_items,
             total=5,
             page=pagination["page"],
