@@ -5,7 +5,7 @@ echo "🚀 Starting Unified Agent Sprint..."
 echo "💻 Working on Backend and Frontend hand in hand..."
 
 export AGENT_ROLE=UNIFIED_AGENT
-export GITHUB_TOKEN=${GITHUB_TOKEN:-"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"}
+export GITHUB_TOKEN=${GITHUB_TOKEN:-"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"}
 export REPO_OWNER=${REPO_OWNER:-"meinzeug"}
 export REPO_NAME=${REPO_NAME:-"mrsunkwn"}
 
