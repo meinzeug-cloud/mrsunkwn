@@ -1,37 +1,37 @@
-# Dual-Agent Master Prompt für parallele Frontend/Backend Entwicklung
+# Dual-Agent Master Prompt for Parallel Frontend/Backend Development
 
-## 🚀 System-Architektur
+## 🚀 System Architecture
 
-### Agent-Rollen (Phasenbasiert)
+### Agent Roles (Phase-Based)
 
-#### Phase 1: Initiale Setup (EINMALIG)
-- **SETUP_AGENT**: Konfiguriert komplette Dual-Agent Infrastruktur
-  - Erstellt Verzeichnisstruktur
-  - GitHub Repository Setup
-  - Agent-Konfigurationsdateien
-  - Issue-Management System
-  - **WICHTIG**: Übernimmt KEINE spezifische Agent-Rolle
+#### Phase 1: Initial Setup (ONE-TIME)
+- **SETUP_AGENT**: Configures complete dual-agent infrastructure
+  - Creates directory structure
+  - GitHub repository setup
+  - Agent configuration files
+  - Issue management system
+  - **IMPORTANT**: Does NOT take on any specific agent role
 
-#### Phase 2: Parallele Entwicklung (KONTINUIERLICH)
-- **FRONTEND_AGENT**: UI/UX, Client-seitige Logik, API-Integration
-- **BACKEND_AGENT**: Server-Logik, Datenbank, APIs, Services
+#### Phase 2: Parallel Development (CONTINUOUS)
+- **FRONTEND_AGENT**: UI/UX, client-side logic, API integration
+- **BACKEND_AGENT**: Server logic, database, APIs, services
 
-### Kommunikationsprotokoll
-- **GitHub Issues** als primäres Kommunikationsmittel zwischen Agents
-- **Branch-basierte Entwicklung**: `feature/frontend-*` und `feature/backend-*`
-- **Automatische Issue-Synchronisation** bei jedem Sprint
+### Communication Protocol
+- **GitHub Issues** as the primary communication method between agents
+- **Branch-based development**: `feature/frontend-*` and `feature/backend-*`
+- **Automatic issue synchronization** at each sprint
 
-## 📁 Verzeichnisstruktur (wird vom SETUP_AGENT erstellt)
+## 📁 Directory Structure (created by SETUP_AGENT)
 
 ```
 /
-├── README.md                           # Projektkonzept (MUSS bereits existieren)
-├── frontend/                          # Frontend-Code
+├── README.md                           # Project concept (MUST already exist)
+├── frontend/                           # Frontend code
 │   ├── src/
 │   ├── components/
 │   ├── pages/
 │   └── package.json
-├── backend/                           # Backend-Code
+├── backend/                            # Backend code
 │   ├── src/
 │   ├── models/
 │   ├── controllers/
@@ -40,14 +40,14 @@
 └── codex/
     ├── agents/
     │   ├── frontend/
-    │   │   ├── config.md              # Frontend-Agent Konfiguration
-    │   │   └── prompt.md              # Frontend-Agent Ausführungs-Prompt
+    │   │   ├── config.md              # Frontend agent configuration
+    │   │   └── prompt.md              # Frontend agent execution prompt
     │   ├── backend/
-    │   │   ├── config.md              # Backend-Agent Konfiguration
-    │   │   └── prompt.md              # Backend-Agent Ausführungs-Prompt
+    │   │   ├── config.md              # Backend agent configuration
+    │   │   └── prompt.md              # Backend agent execution prompt
     │   └── setup/
-    │       ├── config.md              # Setup-Agent Konfiguration
-    │       └── validation.md          # Setup-Validierung
+    │       ├── config.md              # Setup agent configuration
+    │       └── validation.md          # Setup validation
     ├── daten/
     │   ├── frontend/
     │   │   ├── roadmap.md
@@ -66,204 +66,194 @@
         │   ├── agent_request.md
         │   ├── api_contract.md
         │   └── integration.md
-        ├── github_config.py           # GitHub API Konfiguration
-        └── issue_manager.py           # Issue Management Script
+        ├── github_config.py           # GitHub API configuration
+        └── issue_manager.py           # Issue management script
 ```
 
-## 🎯 PHASE 1: Setup-Agent Ausführung (EINMALIG)
+## 🎯 PHASE 1: Setup Agent Execution (ONE-TIME)
 
-### WICHTIG: Setup-Voraussetzungen
+### IMPORTANT: Setup Prerequisites
 
-**Manuelle Vorbereitung ERFORDERLICH:**
-1. **GitHub Repository** bereits erstellt und zugänglich
-2. **README.md** mit vollständiger Projektbeschreibung bereits vorhanden
-3. **Umgebungsvariablen** müssen gesetzt sein:
+**Manual preparation REQUIRED:**
+1. **GitHub repository** must already be created and accessible
+2. **README.md** with complete project description must already exist
+3. **Environment variables** must be set:
    ```bash
    export GITHUB_TOKEN=your_personal_access_token
    export REPO_OWNER=your_github_username  
    export REPO_NAME=your_repository_name
    ```
 
-### Setup-Agent Ausführung:
+### Setup Agent Execution:
 ```bash
-# KEINE Agent-Rolle setzen - Setup-Agent arbeitet neutral
-codex "Führe Setup für Dual-Agent System durch basierend auf diesem Master-Prompt"
+# DO NOT set agent role - Setup Agent acts neutral
+codex "Perform setup for dual-agent system based on this master prompt"
 ```
 
-### Setup-Agent Aufgaben (Automatisch ausgeführt):
+### Setup Agent Tasks (Executed Automatically):
 
-#### 1. Projekt-Analyse & Validierung
+#### 1. Project Analysis & Validation
 ```python
-# Setup-Agent führt aus:
 def validate_prerequisites():
-    # ✅ GitHub Repository Zugang testen
-    # ✅ README.md existiert und ist vollständig
-    # ✅ Umgebungsvariablen vorhanden
-    # ✅ GitHub API Funktionalität testen
+    # ✅ Test GitHub repo access
+    # ✅ Check if README.md exists and is complete
+    # ✅ Check for environment variables
+    # ✅ Test GitHub API functionality
 ```
 
-#### 2. GitHub Repository Konfiguration
+#### 2. GitHub Repository Configuration
 ```python
 def setup_github_repository():
-    # ✅ 9 Agent-Kommunikations-Labels erstellen:
     labels = [
         'frontend-request', 'backend-request', 'api-contract',
         'integration', 'bug-cross-agent', 'documentation',
         'setup-required', 'sprint-coordination', 'validation-needed'
     ]
-    
-    # ✅ Branch-Struktur erstellen
     branches = ['develop-frontend', 'develop-backend']
-    
-    # ✅ Branch Protection Rules
-    # ✅ Issue Templates erstellen
+    # ✅ Set up labels, branches, branch protections, issue templates
 ```
 
-#### 3. Verzeichnisstruktur Generierung
+#### 3. Generate Directory Structure
 ```python
 def create_directory_structure():
-    # ✅ Komplette /codex/ Struktur erstellen
-    # ✅ Alle notwendigen .md Dateien generieren
-    # ✅ Python Scripts für GitHub Integration
-    # ✅ Agent-spezifische Konfigurationsdateien
+    # ✅ Create complete /codex/ structure
+    # ✅ Generate all necessary .md files
+    # ✅ Add Python scripts for GitHub integration
+    # ✅ Add agent-specific configuration files
 ```
 
-#### 4. Agent-Konfigurationsdateien erstellen
+#### 4. Create Agent Configuration Files
 
-**Frontend Agent Konfiguration** (`/codex/agents/frontend/config.md`):
+**Frontend Agent Configuration** (`/codex/agents/frontend/config.md`):
 ```markdown
-# Frontend Agent Konfiguration
+# Frontend Agent Configuration
 
-## Verantwortlichkeiten
-- UI/UX Entwicklung
-- Client-seitige Logik
-- API Integration
-- Frontend Testing
-- Responsive Design
+## Responsibilities
+- UI/UX Development
+- Client-side logic
+- API integration
+- Frontend testing
+- Responsive design
 
-## Technologie-Stack
-[Wird basierend auf README.md befüllt]
+## Tech Stack
+[To be filled based on README.md]
 
 ## GitHub Issue Labels (Frontend)
-- `frontend-request`: Anfragen an Backend
-- `api-contract`: API-Definitionen
-- `integration`: Frontend-Backend Integration
+- `frontend-request`: Requests to Backend
+- `api-contract`: API definitions
+- `integration`: Frontend-Backend integration
 ```
 
-**Backend Agent Konfiguration** (`/codex/agents/backend/config.md`):
+**Backend Agent Configuration** (`/codex/agents/backend/config.md`):
 ```markdown
-# Backend Agent Konfiguration
+# Backend Agent Configuration
 
-## Verantwortlichkeiten
-- Server-Logik
-- Datenbank Design & Management
-- API Entwicklung
-- Backend Services
-- Performance & Security
+## Responsibilities
+- Server logic
+- Database design & management
+- API development
+- Backend services
+- Performance & security
 
-## Technologie-Stack
-[Wird basierend auf README.md befüllt]
+## Tech Stack
+[To be filled based on README.md]
 
 ## GitHub Issue Labels (Backend)
-- `backend-request`: Anfragen an Frontend
-- `api-contract`: API-Definitionen
-- `integration`: Backend-Frontend Integration
+- `backend-request`: Requests to Frontend
+- `api-contract`: API definitions
+- `integration`: Backend-Frontend integration
 ```
 
-#### 5. Ausführbare Agent-Prompts generieren
+#### 5. Generate Executable Agent Prompts
 
 **Frontend Agent Prompt** (`/codex/agents/frontend/prompt.md`):
 ```markdown
-# Frontend Agent Ausführungs-Prompt
+# Frontend Agent Execution Prompt
 
-## Agent-Identifikation
-Du bist der **FRONTEND_AGENT** in einem Dual-Agent System.
+## Agent Identification
+You are the **FRONTEND_AGENT** in a dual-agent system.
 
-## Sprint-Start Protokoll
+## Sprint Start Protocol
 
-### 1. Agent-Rolle setzen
+### 1. Set Agent Role
 ```bash
 export AGENT_ROLE=FRONTEND_AGENT
 ```
 
-### 2. Issue-Synchronisation (bei JEDEM Sprint)
+### 2. Issue Synchronization
 ```python
-# Automatische Ausführung:
 import sys
 sys.path.append('/codex/github/')
 from issue_manager import sync_frontend_issues
 
-# GitHub Issues für Frontend laden
 my_issues = sync_frontend_issues()
-print(f"Gefundene Frontend Issues: {len(my_issues)}")
+print(f"Found frontend issues: {len(my_issues)}")
 ```
 
 ### 3. Roadmap Check
-- Lese: `/codex/daten/frontend/roadmap.md`
-- Lese: `/codex/daten/frontend/status.md`
-- Lese: `/codex/daten/shared/api_contracts.md`
+- Read: `/codex/daten/frontend/roadmap.md`
+- Read: `/codex/daten/frontend/status.md`
+- Read: `/codex/daten/shared/api_contracts.md`
 
-### 4. Arbeitsbereich
-- Arbeite AUSSCHLIESSLICH in: `/frontend/`
+### 4. Workspace
+- Work ONLY in `/frontend/`
 - Branch: `feature/frontend-*`
-- Tests: Frontend-spezifische Tests
+- Tests: frontend-specific
 
-### 5. Koordination
-- Erstelle Issues für Backend-Anfragen
-- Update API-Contracts bei Änderungen
-- Kommuniziere über GitHub Issues
+### 5. Coordination
+- Create issues for backend requests
+- Update API contracts when needed
+- Use GitHub Issues for communication
 
-### 6. Sprint-Ende
+### 6. Sprint End
 - Update `/codex/daten/frontend/changelog.md`
 - Update `/codex/daten/frontend/status.md`
-- Erstelle Issues für nächsten Sprint
+- Create issues for the next sprint
 ```
 
 **Backend Agent Prompt** (`/codex/agents/backend/prompt.md`):
 ```markdown
-# Backend Agent Ausführungs-Prompt
+# Backend Agent Execution Prompt
 
-## Agent-Identifikation
-Du bist der **BACKEND_AGENT** in einem Dual-Agent System.
+## Agent Identification
+You are the **BACKEND_AGENT** in a dual-agent system.
 
-## Sprint-Start Protokoll
+## Sprint Start Protocol
 
-### 1. Agent-Rolle setzen
+### 1. Set Agent Role
 ```bash
 export AGENT_ROLE=BACKEND_AGENT
 ```
 
-### 2. Issue-Synchronisation (bei JEDEM Sprint)
+### 2. Issue Synchronization
 ```python
-# Automatische Ausführung:
 import sys
 sys.path.append('/codex/github/')
 from issue_manager import sync_backend_issues
 
-# GitHub Issues für Backend laden
 my_issues = sync_backend_issues()
-print(f"Gefundene Backend Issues: {len(my_issues)}")
+print(f"Found backend issues: {len(my_issues)}")
 ```
 
 ### 3. Roadmap Check
-- Lese: `/codex/daten/backend/roadmap.md`
-- Lese: `/codex/daten/backend/status.md`
-- Lese: `/codex/daten/shared/api_contracts.md`
+- Read: `/codex/daten/backend/roadmap.md`
+- Read: `/codex/daten/backend/status.md`
+- Read: `/codex/daten/shared/api_contracts.md`
 
-### 4. Arbeitsbereich
-- Arbeite AUSSCHLIESSLICH in: `/backend/`
+### 4. Workspace
+- Work ONLY in `/backend/`
 - Branch: `feature/backend-*`
-- Tests: Backend-spezifische Tests
+- Tests: backend-specific
 
-### 5. Koordination
-- Erstelle Issues für Frontend-Benachrichtigungen
-- Update API-Contracts bei neuen APIs
-- Kommuniziere über GitHub Issues
+### 5. Coordination
+- Create issues to notify frontend
+- Update API contracts when needed
+- Use GitHub Issues for communication
 
-### 6. Sprint-Ende
+### 6. Sprint End
 - Update `/codex/daten/backend/changelog.md`
 - Update `/codex/daten/backend/status.md`
-- Erstelle Issues für nächsten Sprint
+- Create issues for the next sprint
 ```
 
 #### 6. GitHub Issue Management System
@@ -274,135 +264,126 @@ import os
 import requests
 from datetime import datetime
 
-# Globale Umgebungsvariablen (bereits gesetzt)
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 REPO_OWNER = os.getenv('REPO_OWNER')
 REPO_NAME = os.getenv('REPO_NAME')
 
 def sync_frontend_issues():
-    """Lädt alle Frontend-relevanten Issues"""
     issues = fetch_issues_by_labels(['frontend-request', 'api-contract', 'integration'])
     return filter_open_issues(issues)
 
 def sync_backend_issues():
-    """Lädt alle Backend-relevanten Issues"""
     issues = fetch_issues_by_labels(['backend-request', 'api-contract', 'integration'])
     return filter_open_issues(issues)
 
 def create_coordination_issue(title, body, labels, assignee=None):
-    """Erstellt neues Issue für Agent-Koordination"""
-    # GitHub API Implementation
     pass
 
 def close_completed_issue(issue_number, completion_note):
-    """Schließt erledigte Issues"""
-    # GitHub API Implementation
     pass
 ```
 
-#### 7. Setup-Validierung & Abschluss
+#### 7. Setup Validation & Completion
 
 ```python
 def validate_setup():
-    # ✅ Alle Verzeichnisse erstellt
-    # ✅ Alle Konfigurationsdateien vorhanden
-    # ✅ GitHub API funktional
-    # ✅ Issue-Labels erstellt
-    # ✅ Branch-Struktur vorhanden
-    # ✅ Agent-Prompts ausführbar
+    # ✅ Directories created
+    # ✅ Configuration files exist
+    # ✅ GitHub API working
+    # ✅ Issue labels created
+    # ✅ Branch structure exists
+    # ✅ Agent prompts executable
 ```
 
-#### 8. Erstes Koordinations-Issue erstellen
+#### 8. Create First Coordination Issue
 
 ```markdown
-**Titel**: "🚀 Dual-Agent System Setup abgeschlossen - Bereit für parallele Entwicklung"
+**Title**: "🚀 Dual-Agent System Setup Complete - Ready for Parallel Development"
 **Labels**: setup-required, sprint-coordination
 **Body**:
-# Dual-Agent System erfolgreich konfiguriert!
+# Dual-Agent System successfully configured!
 
-## ✅ Setup-Agent Abschluss
+## ✅ Setup Agent Completion
 
-### Konfigurierte Komponenten:
-- ✅ GitHub Repository mit 9 Agent-Labels
-- ✅ Branch-Struktur (develop-frontend, develop-backend)
-- ✅ Komplette /codex/ Verzeichnisstruktur
-- ✅ Agent-Konfigurationsdateien
-- ✅ Ausführbare Agent-Prompts
-- ✅ GitHub Issue Management System
-- ✅ API-Contract Management
+### Configured Components:
+- ✅ GitHub repo with 9 agent labels
+- ✅ Branch structure (develop-frontend, develop-backend)
+- ✅ Full /codex/ directory structure
+- ✅ Agent configuration files
+- ✅ Executable agent prompts
+- ✅ GitHub issue management system
+- ✅ API contract management
 
-### Nächste Schritte:
+### Next Steps:
 
-#### Frontend Agent Start:
+#### Start Frontend Agent:
 ```bash
-codex führe prompt /codex/agents/frontend/prompt.md
+codex run prompt /codex/agents/frontend/prompt.md
 ```
 
-#### Backend Agent Start:
+#### Start Backend Agent:
 ```bash
-codex führe prompt /codex/agents/backend/prompt.md
+codex run prompt /codex/agents/backend/prompt.md
 ```
 
-**System ist bereit für parallele Dual-Agent Entwicklung!**
+**System is ready for parallel dual-agent development!**
 ```
 
-## 🎯 PHASE 2: Parallele Agent-Entwicklung
+## 🎯 PHASE 2: Parallel Agent Development
 
-### Frontend Agent starten:
+### Start Frontend Agent:
 ```bash
 # Terminal 1
-codex führe prompt /codex/agents/frontend/prompt.md
+codex run prompt /codex/agents/frontend/prompt.md
 ```
 
-### Backend Agent starten:
+### Start Backend Agent:
 ```bash
-# Terminal 2  
-codex führe prompt /codex/agents/backend/prompt.md
+# Terminal 2
+codex run prompt /codex/agents/backend/prompt.md
 ```
 
-## 🔄 Kontinuierlicher Sprint-Zyklus (für beide Agents)
+## 🔄 Continuous Sprint Cycle (for both agents)
 
-### Bei jedem Sprint automatisch:
-1. **Issue-Synchronisation**: Laden aller relevanten GitHub Issues
-2. **Roadmap-Check**: Aktuelle Aufgaben aus Roadmap
-3. **API-Contract Check**: Aktuelle API-Definitionen
-4. **Koordinations-Issues**: Neue Issues für anderen Agent erstellen
-5. **Entwicklung**: Arbeit an zugewiesenen Aufgaben
-6. **Dokumentation**: Changelog und Status Updates
-7. **Issue-Updates**: Erledigte Issues schließen, neue erstellen
+### At each sprint:
+1. **Issue Sync**: Load all relevant GitHub issues
+2. **Roadmap Check**: Load current tasks
+3. **API Contract Check**
+4. **Coordination Issues**: Create issues for counterpart agent
+5. **Development**
+6. **Documentation**: Update changelog and status
+7. **Issue Updates**: Close completed issues, create new ones
 
-### Agent-Kommunikation über GitHub Issues:
-- **Frontend → Backend**: Issues mit Label `backend-request`
-- **Backend → Frontend**: Issues mit Label `frontend-request`
-- **Gemeinsam**: Issues mit Label `integration`, `api-contract`
+### Agent communication via GitHub Issues:
+- **Frontend → Backend**: Issues with label `backend-request`
+- **Backend → Frontend**: Issues with label `frontend-request`
+- **Shared**: Issues with `integration`, `api-contract`
 
-## 🚀 Zusammenfassung der Ausführung
+## 🚀 Execution Summary
 
-### 1. Einmalige Setup-Phase:
+### 1. One-time Setup Phase:
 ```bash
-# Umgebungsvariablen setzen (einmalig)
 export GITHUB_TOKEN=your_token
 export REPO_OWNER=your_username
 export REPO_NAME=your_repo
 
-# Setup-Agent ausführen (einmalig)
-codex "Führe Setup für Dual-Agent System durch basierend auf diesem Master-Prompt"
+codex "Perform setup for dual-agent system based on this master prompt"
 ```
 
-### 2. Parallele Entwicklungsphase (wiederholbar):
+### 2. Repeating Development Phase:
 ```bash
 # Terminal 1 - Frontend Agent
-codex führe prompt /codex/agents/frontend/prompt.md
+codex run prompt /codex/agents/frontend/prompt.md
 
-# Terminal 2 - Backend Agent  
-codex führe prompt /codex/agents/backend/prompt.md
+# Terminal 2 - Backend Agent
+codex run prompt /codex/agents/backend/prompt.md
 ```
 
-**Das System gewährleistet:**
-- ✅ Klare Trennung zwischen Setup und Entwicklung
-- ✅ Automatische Agent-Koordination über GitHub Issues
-- ✅ Parallele Entwicklung ohne Konflikte
-- ✅ Kontinuierliche Integration und Kommunikation
-- ✅ Vollständige Dokumentation und Nachverfolgung
+**This system ensures:**
+- ✅ Clear separation between setup and development
+- ✅ Automatic agent coordination via GitHub Issues
+- ✅ Parallel, conflict-free development
+- ✅ Continuous integration and communication
+- ✅ Full documentation and traceability
 
-Die Agents arbeiten völlig autonom in ihren Bereichen und koordinieren sich automatisch über das GitHub Issue System!
+Agents operate fully autonomously and coordinate solely through GitHub Issues!
