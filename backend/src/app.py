@@ -21,6 +21,15 @@ from endpoints.subscriptions import router as subscriptions_router
 from endpoints.feedback import router as feedback_router
 from endpoints.support import router as support_router
 from endpoints.admin import router as admin_router
+from endpoints.learning_sessions import router as learning_sessions_router
+from endpoints.ai_tutor import router as ai_tutor_router
+from endpoints.families import router as families_router
+from endpoints.device_monitoring import router as device_monitoring_router
+from endpoints.parental_controls import router as parental_controls_router
+from endpoints.anti_cheat import router as anti_cheat_router
+from endpoints.gamification import router as gamification_router
+from endpoints.content import router as content_router
+from endpoints.assessments import router as assessments_router
 
 app = FastAPI()
 
@@ -31,6 +40,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(assessments_router)
+app.include_router(content_router)
+app.include_router(gamification_router)
+app.include_router(anti_cheat_router)
+app.include_router(parental_controls_router)
+app.include_router(device_monitoring_router)
+app.include_router(families_router)
+app.include_router(ai_tutor_router)
+app.include_router(learning_sessions_router)
 app.include_router(admin_router)
 app.include_router(support_router)
 app.include_router(feedback_router)

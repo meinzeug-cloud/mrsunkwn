@@ -16,22 +16,22 @@ class MrsUnkwnStatus(str, Enum):
     BLOCKED = "blocked"
     SUSPENDED = "suspended"
 
-class LearningSessionPriority(str, Enum):
+class AntiCheatAlertPriority(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
 # SQLAlchemy Model (Database)
-class LearningSessionDB(Base):
-    """SQLAlchemy model for LearningSession in database"""
-    __tablename__ = "learningsessions"
+class AntiCheatAlertDB(Base):
+    """SQLAlchemy model for AntiCheatAlert in database"""
+    __tablename__ = "anticheatalerts"
     
     id = Column(String, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     status = Column(String(20), default=MrsUnkwnStatus.ACTIVE.value, index=True)
-    priority = Column(String(20), default=LearningSessionPriority.MEDIUM.value)
+    priority = Column(String(20), default=AntiCheatAlertPriority.MEDIUM.value)
     
     # Mrs-Unkwn specific fields
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
@@ -62,16 +62,16 @@ class LearningSessionDB(Base):
     version = Column(Integer, default=1)
     
     # Relationships
-    user = relationship("User", back_populates="learningsessions")
-    family = relationship("Family", back_populates="learningsessions")
+    user = relationship("User", back_populates="anticheatalerts")
+    family = relationship("Family", back_populates="anticheatalerts")
 
 # Pydantic Models (API)
-class LearningSessionBase(BaseModel):
-    """Base model for LearningSession API operations"""
-    name: str = Field(..., min_length=1, max_length=255, description="Name of the learningsession")
+class AntiCheatAlertBase(BaseModel):
+    """Base model for AntiCheatAlert API operations"""
+    name: str = Field(..., min_length=1, max_length=255, description="Name of the anticheatalert")
     description: Optional[str] = Field(None, max_length=1000, description="Description")
     status: MrsUnkwnStatus = Field(default=MrsUnkwnStatus.ACTIVE)
-    priority: LearningSessionPriority = Field(default=LearningSessionPriority.MEDIUM)
+    priority: AntiCheatAlertPriority = Field(default=AntiCheatAlertPriority.MEDIUM)
     subject_areas: List[str] = Field(default_factory=list, description="Subject areas")
     difficulty_level: int = Field(default=5, ge=1, le=10, description="Difficulty level (1-10)")
     age_appropriate: bool = Field(default=True, description="Age appropriate content")
@@ -98,16 +98,16 @@ class LearningSessionBase(BaseModel):
             raise ValueError('Name cannot be empty or only whitespace')
         return v.strip()
 
-class LearningSessionCreate(LearningSessionBase):
-    """Model for creating new LearningSession"""
-    user_id: str = Field(..., description="User ID who owns this learningsession")
+class AntiCheatAlertCreate(AntiCheatAlertBase):
+    """Model for creating new AntiCheatAlert"""
+    user_id: str = Field(..., description="User ID who owns this anticheatalert")
     family_id: str = Field(..., description="Family ID for access control")
     
     class Config:
         schema_extra = {
             "example": {
-                "name": "Sample LearningSession",
-                "description": "A sample learningsession for demonstration",
+                "name": "Sample AntiCheatAlert",
+                "description": "A sample anticheatalert for demonstration",
                 "status": "active",
                 "priority": "medium",
                 "subject_areas": ["mathematics", "science"],
@@ -119,12 +119,12 @@ class LearningSessionCreate(LearningSessionBase):
             }
         }
 
-class LearningSessionUpdate(BaseModel):
-    """Model for updating LearningSession"""
+class AntiCheatAlertUpdate(BaseModel):
+    """Model for updating AntiCheatAlert"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
     status: Optional[MrsUnkwnStatus] = None
-    priority: Optional[LearningSessionPriority] = None
+    priority: Optional[AntiCheatAlertPriority] = None
     subject_areas: Optional[List[str]] = None
     difficulty_level: Optional[int] = Field(None, ge=1, le=10)
     age_appropriate: Optional[bool] = None
@@ -140,8 +140,8 @@ class LearningSessionUpdate(BaseModel):
             raise ValueError('Name cannot be empty or only whitespace')
         return v.strip() if v else v
 
-class LearningSessionInDB(LearningSessionBase):
-    """Model for LearningSession as stored in database"""
+class AntiCheatAlertInDB(AntiCheatAlertBase):
+    """Model for AntiCheatAlert as stored in database"""
     id: str = Field(..., description="Unique identifier")
     user_id: str = Field(..., description="Owner user ID")
     family_id: str = Field(..., description="Family ID")
@@ -161,15 +161,15 @@ class LearningSessionInDB(LearningSessionBase):
     class Config:
         orm_mode = True
 
-class LearningSessionResponse(LearningSessionInDB):
-    """Model for LearningSession API response"""
+class AntiCheatAlertResponse(AntiCheatAlertInDB):
+    """Model for AntiCheatAlert API response"""
     
     class Config:
         schema_extra = {
             "example": {
-                "id": "learningsession_123",
-                "name": "Sample LearningSession",
-                "description": "A sample learningsession",
+                "id": "anticheatalert_123",
+                "name": "Sample AntiCheatAlert",
+                "description": "A sample anticheatalert",
                 "status": "active",
                 "priority": "medium",
                 "user_id": "user_123",
@@ -184,9 +184,9 @@ class LearningSessionResponse(LearningSessionInDB):
             }
         }
 
-class LearningSessionList(BaseModel):
-    """Model for paginated LearningSession list response"""
-    items: List[LearningSessionResponse] = Field(..., description="List of learningsessions")
+class AntiCheatAlertList(BaseModel):
+    """Model for paginated AntiCheatAlert list response"""
+    items: List[AntiCheatAlertResponse] = Field(..., description="List of anticheatalerts")
     total: int = Field(..., description="Total number of items")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Items per page")
@@ -194,8 +194,8 @@ class LearningSessionList(BaseModel):
     has_next: bool = Field(..., description="Has next page")
     has_prev: bool = Field(..., description="Has previous page")
 
-class LearningSessionAnalytics(BaseModel):
-    """Model for LearningSession analytics data"""
+class AntiCheatAlertAnalytics(BaseModel):
+    """Model for AntiCheatAlert analytics data"""
     user_id: str
     family_id: str
     timeframe: str
@@ -211,17 +211,17 @@ class LearningSessionAnalytics(BaseModel):
     generated_at: datetime
 
 # Database operations class
-class LearningSessionOperations:
-    """Database operations for LearningSession"""
+class AntiCheatAlertOperations:
+    """Database operations for AntiCheatAlert"""
     
     def __init__(self, db):
         self.db = db
     
-    async def create(self, data: LearningSessionCreate) -> LearningSessionInDB:
-        """Create new learningsession in database"""
+    async def create(self, data: AntiCheatAlertCreate) -> AntiCheatAlertInDB:
+        """Create new anticheatalert in database"""
         import uuid
         
-        db_item = LearningSessionDB(
+        db_item = AntiCheatAlertDB(
             id=str(uuid.uuid4()),
             **data.dict(),
             created_at=datetime.utcnow()
@@ -231,29 +231,29 @@ class LearningSessionOperations:
         await self.db.commit()
         await self.db.refresh(db_item)
         
-        return LearningSessionInDB.from_orm(db_item)
+        return AntiCheatAlertInDB.from_orm(db_item)
     
-    async def get_by_id(self, item_id: str) -> Optional[LearningSessionInDB]:
-        """Get learningsession by ID"""
-        db_item = await self.db.query(LearningSessionDB).filter(
-            LearningSessionDB.id == item_id
+    async def get_by_id(self, item_id: str) -> Optional[AntiCheatAlertInDB]:
+        """Get anticheatalert by ID"""
+        db_item = await self.db.query(AntiCheatAlertDB).filter(
+            AntiCheatAlertDB.id == item_id
         ).first()
         
-        return LearningSessionInDB.from_orm(db_item) if db_item else None
+        return AntiCheatAlertInDB.from_orm(db_item) if db_item else None
     
-    async def get_by_user(self, user_id: str, page: int = 1, per_page: int = 20) -> LearningSessionList:
-        """Get learningsessions by user ID"""
+    async def get_by_user(self, user_id: str, page: int = 1, per_page: int = 20) -> AntiCheatAlertList:
+        """Get anticheatalerts by user ID"""
         offset = (page - 1) * per_page
         
-        query = self.db.query(LearningSessionDB).filter(
-            LearningSessionDB.user_id == user_id
+        query = self.db.query(AntiCheatAlertDB).filter(
+            AntiCheatAlertDB.user_id == user_id
         )
         
         total = await query.count()
         items = await query.offset(offset).limit(per_page).all()
         
-        return LearningSessionList(
-            items=[LearningSessionResponse.from_orm(item) for item in items],
+        return AntiCheatAlertList(
+            items=[AntiCheatAlertResponse.from_orm(item) for item in items],
             total=total,
             page=page,
             per_page=per_page,
@@ -262,10 +262,10 @@ class LearningSessionOperations:
             has_prev=page > 1
         )
     
-    async def update(self, item_id: str, data: LearningSessionUpdate) -> Optional[LearningSessionInDB]:
-        """Update learningsession by ID"""
-        db_item = await self.db.query(LearningSessionDB).filter(
-            LearningSessionDB.id == item_id
+    async def update(self, item_id: str, data: AntiCheatAlertUpdate) -> Optional[AntiCheatAlertInDB]:
+        """Update anticheatalert by ID"""
+        db_item = await self.db.query(AntiCheatAlertDB).filter(
+            AntiCheatAlertDB.id == item_id
         ).first()
         
         if not db_item:
@@ -281,12 +281,12 @@ class LearningSessionOperations:
         await self.db.commit()
         await self.db.refresh(db_item)
         
-        return LearningSessionInDB.from_orm(db_item)
+        return AntiCheatAlertInDB.from_orm(db_item)
     
     async def delete(self, item_id: str) -> bool:
-        """Delete learningsession by ID"""
-        db_item = await self.db.query(LearningSessionDB).filter(
-            LearningSessionDB.id == item_id
+        """Delete anticheatalert by ID"""
+        db_item = await self.db.query(AntiCheatAlertDB).filter(
+            AntiCheatAlertDB.id == item_id
         ).first()
         
         if not db_item:
@@ -297,10 +297,10 @@ class LearningSessionOperations:
         
         return True
     
-    async def get_analytics(self, user_id: str, timeframe: str = "week") -> LearningSessionAnalytics:
-        """Get analytics for learningsessions"""
+    async def get_analytics(self, user_id: str, timeframe: str = "week") -> AntiCheatAlertAnalytics:
+        """Get analytics for anticheatalerts"""
         # Implementation would include complex analytics queries
-        return LearningSessionAnalytics(
+        return AntiCheatAlertAnalytics(
             user_id=user_id,
             family_id="family_123",
             timeframe=timeframe,

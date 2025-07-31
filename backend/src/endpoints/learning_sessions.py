@@ -10,8 +10,8 @@ import json
 from sqlalchemy.orm import Session
 from database import get_db
 from auth import get_current_user, get_current_parent, verify_permissions
-from models.analytics import Analytics
-from services.analytics_service import AnalyticsService
+from models.learning_sessions import Learning_Sessions
+from services.learning_sessions_service import Learning_SessionsService
 from services.ai_tutor_service import AITutorService
 from services.anti_cheat_service import AntiCheatService
 from monitoring.activity_logger import log_user_activity
@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 # Create router with Mrs-Unkwn specific configuration
 router = APIRouter(
-    prefix="/api/analytics",
-    tags=["analytics"],
+    prefix="/api/learning-sessions",
+    tags=["learning-sessions"],
     responses={
         404: {"description": "Resource not found"},
         403: {"description": "Access forbidden - Parental controls or permissions"},
@@ -55,8 +55,8 @@ class ParentalControlLevel(str, Enum):
     CUSTOM = "custom"
 
 # Enhanced base models for Mrs-Unkwn
-class AnalyticsBase(BaseModel):
-    """Base model for analytics with Mrs-Unkwn specific fields"""
+class Learning_SessionsBase(BaseModel):
+    """Base model for learning_sessions with Mrs-Unkwn specific fields"""
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
     status: MrsUnkwnStatus = Field(default=MrsUnkwnStatus.ACTIVE)
@@ -82,8 +82,8 @@ class AnalyticsBase(BaseModel):
                 raise ValueError(f'Invalid subject: {subject}')
         return v
 
-class AnalyticsCreate(AnalyticsBase):
-    """Model for creating analytics with Mrs-Unkwn features"""
+class Learning_SessionsCreate(Learning_SessionsBase):
+    """Model for creating learning_sessions with Mrs-Unkwn features"""
     student_id: Optional[str] = Field(None, description="Associated student ID")
     parent_id: Optional[str] = Field(None, description="Associated parent ID")
     family_id: str = Field(..., description="Family ID for access control")
@@ -103,7 +103,7 @@ class AnalyticsCreate(AnalyticsBase):
             }
         }
 
-class AnalyticsResponse(AnalyticsBase):
+class Learning_SessionsResponse(Learning_SessionsBase):
     """Response model with Mrs-Unkwn analytics"""
     id: str = Field(..., description="Unique identifier")
     created_at: datetime
@@ -170,11 +170,11 @@ async def log_learning_activity(
 # Main CRUD endpoints with Mrs-Unkwn features
 @router.get(
     "/",
-    response_model=List[AnalyticsResponse],
-    summary="Get analyticss for family",
-    description="Retrieve family's analyticss with parental filtering"
+    response_model=List[Learning_SessionsResponse],
+    summary="Get learning sessionss for family",
+    description="Retrieve family's learning sessionss with parental filtering"
 )
-async def get_analyticss(
+async def get_learning_sessionss(
     family_id: Optional[str] = Query(None, description="Filter by family ID"),
     student_id: Optional[str] = Query(None, description="Filter by student ID"),
     subject: Optional[str] = Query(None, description="Filter by subject area"),
@@ -189,12 +189,12 @@ async def get_analyticss(
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Get analyticss with Mrs-Unkwn family filtering and analytics"""
+    """Get learning_sessionss with Mrs-Unkwn family filtering and analytics"""
     try:
         # Log access attempt
         await log_learning_activity(
             current_user.id, 
-            "view_analyticss", 
+            "view_learning_sessionss", 
             {"family_id": family_id, "filters": {"subject": subject, "status": status}},
             background_tasks
         )
@@ -215,43 +215,43 @@ async def get_analyticss(
         }
         
         # Get data through service layer
-        service = AnalyticsService(db)
-        items = await service.get_filtered_analyticss(
+        service = Learning_SessionsService(db)
+        items = await service.get_filtered_learning_sessionss(
             filters=filters,
             include_analytics=include_analytics,
             page=page,
             per_page=per_page
         )
         
-        logger.info(f"Retrieved {len(items)} analyticss for user {current_user.id}")
+        logger.info(f"Retrieved {len(items)} learning_sessionss for user {current_user.id}")
         return items
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving analyticss: {str(e)}")
+        logger.error(f"Error retrieving learning_sessionss: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving data")
 
 @router.post(
     "/",
-    response_model=AnalyticsResponse,
+    response_model=Learning_SessionsResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create new analytics",
-    description="Create new analytics with AI tutor integration"
+    summary="Create new learning sessions",
+    description="Create new learning sessions with AI tutor integration"
 )
-async def create_analytics(
-    request: AnalyticsCreate,
+async def create_learning_sessions(
+    request: Learning_SessionsCreate,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Create new analytics with Mrs-Unkwn features"""
+    """Create new learning_sessions with Mrs-Unkwn features"""
     try:
         # Check parental controls if this is for a student
         if request.student_id:
             allowed = await check_parental_controls(
                 request.student_id, 
-                "create_analytics",
+                "create_learning_sessions",
                 db
             )
             if not allowed:
@@ -265,56 +265,56 @@ async def create_analytics(
             raise HTTPException(status_code=403, detail="Family access required")
         
         # Create through service layer
-        service = AnalyticsService(db)
-        new_item = await service.create_analytics(request, current_user.id)
+        service = Learning_SessionsService(db)
+        new_item = await service.create_learning_sessions(request, current_user.id)
         
         # Initialize AI tutor if enabled
         if request.ai_interaction_enabled:
             ai_service = AITutorService()
-            await ai_service.initialize_for_analytics(new_item.id)
+            await ai_service.initialize_for_learning_sessions(new_item.id)
         
         # Log creation activity
         await log_learning_activity(
             current_user.id,
-            "create_analytics",
+            "create_learning_sessions",
             {"item_id": new_item.id, "name": request.name},
             background_tasks
         )
         
-        logger.info(f"Created analytics {new_item.id} for user {current_user.id}")
+        logger.info(f"Created learning_sessions {new_item.id} for user {current_user.id}")
         return new_item
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error creating analytics: {str(e)}")
+        logger.error(f"Error creating learning_sessions: {str(e)}")
         raise HTTPException(status_code=500, detail="Error creating resource")
 
 @router.get(
     "/{item_id}",
-    response_model=AnalyticsResponse,
-    summary="Get analytics by ID",
-    description="Get specific analytics with real-time monitoring data"
+    response_model=Learning_SessionsResponse,
+    summary="Get learning sessions by ID",
+    description="Get specific learning sessions with real-time monitoring data"
 )
-async def get_analytics(
-    item_id: str = Path(..., description="ID of the analytics"),
+async def get_learning_sessions(
+    item_id: str = Path(..., description="ID of the learning_sessions"),
     include_live_data: bool = Query(True, description="Include real-time monitoring data"),
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Get analytics with Mrs-Unkwn monitoring integration"""
+    """Get learning_sessions with Mrs-Unkwn monitoring integration"""
     try:
         # Verify access
         if not await verify_family_access(item_id, current_user, db):
             raise HTTPException(status_code=403, detail="Access forbidden")
         
         # Get through service
-        service = AnalyticsService(db)
-        item = await service.get_analytics_by_id(item_id, include_live_data)
+        service = Learning_SessionsService(db)
+        item = await service.get_learning_sessions_by_id(item_id, include_live_data)
         
         if not item:
-            raise HTTPException(status_code=404, detail="Analytics not found")
+            raise HTTPException(status_code=404, detail="Learning_Sessions not found")
         
         # Check for any active anti-cheat alerts
         if include_live_data:
@@ -326,7 +326,7 @@ async def get_analytics(
         # Log access
         await log_learning_activity(
             current_user.id,
-            "view_analytics",
+            "view_learning_sessions",
             {"item_id": item_id},
             background_tasks
         )
@@ -336,14 +336,14 @@ async def get_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving analytics {item_id}: {str(e)}")
+        logger.error(f"Error retrieving learning_sessions {item_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving resource")
 
 # Mrs-Unkwn specific endpoints
 @router.post(
     "/{item_id}/ai-interaction",
     summary="AI Tutor Interaction",
-    description="Interact with AI tutor for this analytics"
+    description="Interact with AI tutor for this learning_sessions"
 )
 async def ai_tutor_interaction(
     item_id: str = Path(...),
@@ -408,7 +408,7 @@ async def ai_tutor_interaction(
 @router.get(
     "/{item_id}/learning-analytics",
     summary="Get Learning Analytics",
-    description="Get comprehensive learning analytics for this analytics"
+    description="Get comprehensive learning analytics for this learning_sessions"
 )
 async def get_learning_analytics(
     item_id: str = Path(...),
@@ -457,7 +457,7 @@ async def parent_intervention(
             raise HTTPException(status_code=403, detail="Parent access required")
         
         # Execute intervention through service
-        service = AnalyticsService(db)
+        service = Learning_SessionsService(db)
         result = await service.execute_parent_intervention(
             item_id=item_id,
             action=action,

@@ -1,571 +1,484 @@
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Path, status
+from fastapi import APIRouter, HTTPException, Depends, Query, Path, status, BackgroundTasks
 from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, timedelta
 from enum import Enum
 import logging
 import asyncio
-from functools import wraps
+import json
+from sqlalchemy.orm import Session
+from database import get_db
+from auth import get_current_user, get_current_parent, verify_permissions
+from models.users import Users
+from services.users_service import UsersService
+from services.ai_tutor_service import AITutorService
+from services.anti_cheat_service import AntiCheatService
+from monitoring.activity_logger import log_user_activity
 
 # Setup logging
 logger = logging.getLogger(__name__)
 
-# Create router with prefix and tags
+# Create router with Mrs-Unkwn specific configuration
 router = APIRouter(
     prefix="/api/users",
     tags=["users"],
     responses={
-        404: {"description": "Users not found"},
+        404: {"description": "Resource not found"},
+        403: {"description": "Access forbidden - Parental controls or permissions"},
         422: {"description": "Validation error"},
+        429: {"description": "Rate limit exceeded"},
         500: {"description": "Internal server error"}
     }
 )
 
-# Enums for status and types
-class UsersStatus(str, Enum):
+# Mrs-Unkwn specific enums and models
+class MrsUnkwnStatus(str, Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
-    PENDING = "pending"
-    ARCHIVED = "archived"
-    DELETED = "deleted"
+    LEARNING = "learning"
+    BLOCKED = "blocked"
+    SUSPENDED = "suspended"
+    MONITORED = "monitored"
 
-class UsersType(str, Enum):
+class LearningMode(str, Enum):
+    SOCRATIC = "socratic"
+    GUIDED = "guided"
+    PRACTICE = "practice"
+    ASSESSMENT = "assessment"
+    FREE_EXPLORATION = "free_exploration"
+
+class ParentalControlLevel(str, Enum):
+    MINIMAL = "minimal"
     STANDARD = "standard"
-    PREMIUM = "premium"
-    ENTERPRISE = "enterprise"
+    STRICT = "strict"
     CUSTOM = "custom"
 
-# Base models
+# Enhanced base models for Mrs-Unkwn
 class UsersBase(BaseModel):
-    """Base model for users"""
-    name: str = Field(..., min_length=1, max_length=255, description="Name of the users")
-    description: Optional[str] = Field(None, max_length=1000, description="Description of the users")
-    status: UsersStatus = Field(default=UsersStatus.ACTIVE, description="Status of the users")
-    type: UsersType = Field(default=UsersType.STANDARD, description="Type of the users")
-    tags: Optional[List[str]] = Field(default_factory=list, description="Tags associated with the users")
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+    """Base model for users with Mrs-Unkwn specific fields"""
+    name: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = Field(None, max_length=1000)
+    status: MrsUnkwnStatus = Field(default=MrsUnkwnStatus.ACTIVE)
+    learning_mode: Optional[LearningMode] = Field(None)
+    parental_control_level: ParentalControlLevel = Field(default=ParentalControlLevel.STANDARD)
+    subject_areas: List[str] = Field(default_factory=list)
+    difficulty_level: int = Field(default=5, ge=1, le=10)
+    age_appropriate: bool = Field(default=True)
+    requires_parent_approval: bool = Field(default=False)
+    ai_interaction_enabled: bool = Field(default=True)
+    monitoring_level: str = Field(default="standard")
+    gamification_enabled: bool = Field(default=True)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
     
-    @validator('name')
-    def validate_name(cls, v):
-        if not v.strip():
-            raise ValueError('Name cannot be empty or only whitespace')
-        return v.strip()
-    
-    @validator('tags')
-    def validate_tags(cls, v):
-        if v and len(v) > 10:
-            raise ValueError('Maximum 10 tags allowed')
+    @validator('subject_areas')
+    def validate_subjects(cls, v):
+        valid_subjects = [
+            'mathematics', 'science', 'english', 'history', 
+            'geography', 'art', 'music', 'programming', 'languages'
+        ]
+        for subject in v:
+            if subject.lower() not in valid_subjects:
+                raise ValueError(f'Invalid subject: {subject}')
         return v
 
 class UsersCreate(UsersBase):
-    """Model for creating users"""
-    created_by: Optional[str] = Field(None, description="ID of the user creating this users")
+    """Model for creating users with Mrs-Unkwn features"""
+    student_id: Optional[str] = Field(None, description="Associated student ID")
+    parent_id: Optional[str] = Field(None, description="Associated parent ID")
+    family_id: str = Field(..., description="Family ID for access control")
     
     class Config:
         schema_extra = {
             "example": {
-                "name": "Sample Users",
-                "description": "This is a sample users",
+                "name": "Mathematics Learning Session",
+                "description": "Algebra practice with AI tutor guidance",
                 "status": "active",
-                "type": "standard",
-                "tags": ["sample", "demo"],
-                "metadata": {"priority": "high", "category": "test"},
-                "created_by": "user123"
+                "learning_mode": "socratic",
+                "parental_control_level": "standard",
+                "subject_areas": ["mathematics"],
+                "difficulty_level": 6,
+                "student_id": "student_123",
+                "family_id": "family_456"
             }
         }
 
-class UsersUpdate(BaseModel):
-    """Model for updating users"""
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
-    status: Optional[UsersStatus] = None
-    type: Optional[UsersType] = None
-    tags: Optional[List[str]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    updated_by: Optional[str] = Field(None, description="ID of the user updating this users")
+class UsersResponse(UsersBase):
+    """Response model with Mrs-Unkwn analytics"""
+    id: str = Field(..., description="Unique identifier")
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    created_by: str
+    family_id: str
     
-    @validator('name')
-    def validate_name(cls, v):
-        if v is not None and not v.strip():
-            raise ValueError('Name cannot be empty or only whitespace')
-        return v.strip() if v else v
-
-class UsersInDB(UsersBase):
-    """Model for users in database"""
-    id: int = Field(..., description="Unique identifier")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
-    created_by: Optional[str] = Field(None, description="ID of the user who created this users")
-    updated_by: Optional[str] = Field(None, description="ID of the user who last updated this users")
-    version: int = Field(default=1, description="Version number for optimistic locking")
-
-class UsersResponse(UsersInDB):
-    """Model for users API response"""
+    # Mrs-Unkwn specific analytics
+    total_learning_time: timedelta = Field(default=timedelta(0))
+    ai_interactions_count: int = Field(default=0)
+    achievements_earned: List[str] = Field(default_factory=list)
+    current_streak: int = Field(default=0)
+    safety_violations: int = Field(default=0)
+    parent_interventions: int = Field(default=0)
+    learning_progress_score: float = Field(default=0.0, ge=0.0, le=1.0)
     
     class Config:
         schema_extra = {
             "example": {
-                "id": 1,
-                "name": "Sample Users",
-                "description": "This is a sample users",
-                "status": "active",
-                "type": "standard",
-                "tags": ["sample", "demo"],
-                "metadata": {"priority": "high", "category": "test"},
-                "created_at": "2023-01-01T00:00:00Z",
-                "updated_at": "2023-01-01T12:00:00Z",
-                "created_by": "user123",
-                "updated_by": "user456",
-                "version": 1
+                "id": "session_789",
+                "name": "Mathematics Learning Session",
+                "status": "learning",
+                "total_learning_time": "PT2H30M",
+                "ai_interactions_count": 45,
+                "achievements_earned": ["first_equation", "streak_7_days"],
+                "current_streak": 7,
+                "learning_progress_score": 0.78
             }
         }
 
-class UsersList(BaseModel):
-    """Model for paginated users list response"""
-    items: List[UsersResponse]
-    total: int
-    page: int
-    per_page: int
-    pages: int
-    has_next: bool
-    has_prev: bool
+# Mrs-Unkwn specific dependency functions
+async def verify_family_access(
+    item_id: str, 
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Verify user has family access to resource"""
+    # TODO: Implement family access verification
+    return True
 
-class UsersStats(BaseModel):
-    """Model for users statistics"""
-    total_count: int
-    active_count: int
-    inactive_count: int
-    pending_count: int
-    archived_count: int
-    deleted_count: int
-    by_type: Dict[str, int]
-    created_today: int
-    created_this_week: int
-    created_this_month: int
+async def check_parental_controls(
+    student_id: str,
+    action: str,
+    db: Session = Depends(get_db)
+):
+    """Check if action is allowed by parental controls"""
+    # TODO: Implement parental control checks
+    return True
 
-# Dependency functions
-async def get_current_user():
-    """Dependency to get current authenticated user"""
-    # TODO: Implement actual authentication logic
-    return "user123"
+async def log_learning_activity(
+    user_id: str,
+    activity_type: str,
+    details: Dict[str, Any],
+    background_tasks: BackgroundTasks
+):
+    """Log learning activity for analytics"""
+    background_tasks.add_task(
+        log_user_activity,
+        user_id=user_id,
+        activity_type=activity_type,
+        details=details
+    )
 
-def validate_pagination(page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)):
-    """Validate pagination parameters"""
-    return {"page": page, "per_page": per_page}
-
-# Rate limiting decorator
-def rate_limit(max_calls: int, time_window: int):
-    """Rate limiting decorator"""
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # TODO: Implement rate limiting logic
-            return await func(*args, **kwargs)
-        return wrapper
-    return decorator
-
-# Main CRUD endpoints
+# Main CRUD endpoints with Mrs-Unkwn features
 @router.get(
     "/",
-    response_model=UsersList,
-    summary="Get all userss",
-    description="Retrieve a paginated list of all userss with optional filtering"
+    response_model=List[UsersResponse],
+    summary="Get userss for family",
+    description="Retrieve family's userss with parental filtering"
 )
-@rate_limit(max_calls=100, time_window=60)
 async def get_userss(
-    pagination: dict = Depends(validate_pagination),
-    status: Optional[UsersStatus] = Query(None, description="Filter by status"),
-    type: Optional[UsersType] = Query(None, description="Filter by type"),
-    search: Optional[str] = Query(None, min_length=1, description="Search in name and description"),
-    tags: Optional[str] = Query(None, description="Comma-separated list of tags to filter by"),
-    created_after: Optional[datetime] = Query(None, description="Filter items created after this date"),
-    created_before: Optional[datetime] = Query(None, description="Filter items created before this date"),
-    sort_by: Optional[str] = Query("created_at", description="Field to sort by"),
-    sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$", description="Sort order"),
-    current_user: str = Depends(get_current_user)
+    family_id: Optional[str] = Query(None, description="Filter by family ID"),
+    student_id: Optional[str] = Query(None, description="Filter by student ID"),
+    subject: Optional[str] = Query(None, description="Filter by subject area"),
+    status: Optional[MrsUnkwnStatus] = Query(None, description="Filter by status"),
+    learning_mode: Optional[LearningMode] = Query(None, description="Filter by learning mode"),
+    date_from: Optional[datetime] = Query(None, description="Filter from date"),
+    date_to: Optional[datetime] = Query(None, description="Filter to date"),
+    include_analytics: bool = Query(True, description="Include learning analytics"),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Get all userss with advanced filtering and pagination"""
+    """Get userss with Mrs-Unkwn family filtering and analytics"""
     try:
-        logger.info(f"Fetching userss for user {current_user} with filters: status={status}, type={type}, search={search}")
-        
-        # Build filters
-        filters = {}
-        if status:
-            filters["status"] = status
-        if type:
-            filters["type"] = type
-        if search:
-            filters["search"] = search
-        if tags:
-            filters["tags"] = tags.split(",")
-        if created_after:
-            filters["created_after"] = created_after
-        if created_before:
-            filters["created_before"] = created_before
-        
-        # TODO: Implement actual database query with filters
-        # Mock response for now
-        mock_items = [
-            UsersResponse(
-                id=i,
-                name=f"Sample Users {i}",
-                description=f"Description for users {i}",
-                status=UsersStatus.ACTIVE,
-                type=UsersType.STANDARD,
-                tags=["sample", f"tag{i}"],
-                metadata={"index": i},
-                created_at=datetime.utcnow() - timedelta(days=i),
-                created_by=current_user,
-                version=1
-            )
-            for i in range(1, min(pagination["per_page"] + 1, 11))
-        ]
-        
-        total = 100  # Mock total count
-        pages = (total + pagination["per_page"] - 1) // pagination["per_page"]
-        
-        response = UsersList(
-            items=mock_items,
-            total=total,
-            page=pagination["page"],
-            per_page=pagination["per_page"],
-            pages=pages,
-            has_next=pagination["page"] < pages,
-            has_prev=pagination["page"] > 1
+        # Log access attempt
+        await log_learning_activity(
+            current_user.id, 
+            "view_userss", 
+            {"family_id": family_id, "filters": {"subject": subject, "status": status}},
+            background_tasks
         )
         
-        logger.info(f"Successfully fetched {len(mock_items)} userss")
-        return response
+        # Verify family access
+        if family_id and not await verify_family_access(family_id, current_user, db):
+            raise HTTPException(status_code=403, detail="Access to family data forbidden")
         
-    except Exception as e:
-        logger.error(f"Error fetching userss: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching userss: {str(e)}")
-
-@router.get(
-    "/{item_id}",
-    response_model=UsersResponse,
-    summary="Get users by ID",
-    description="Retrieve a specific users by its ID"
-)
-async def get_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to retrieve"),
-    current_user: str = Depends(get_current_user)
-):
-    """Get users by ID"""
-    try:
-        logger.info(f"Fetching users {item_id} for user {current_user}")
+        # Build comprehensive filters
+        filters = {
+            "family_id": family_id or current_user.family_id,
+            "student_id": student_id,
+            "subject": subject,
+            "status": status,
+            "learning_mode": learning_mode,
+            "date_from": date_from,
+            "date_to": date_to
+        }
         
-        # TODO: Implement actual database query
-        # Mock response for now
-        if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
-        
-        response = UsersResponse(
-            id=item_id,
-            name=f"Sample Users {item_id}",
-            description=f"Description for users {item_id}",
-            status=UsersStatus.ACTIVE,
-            type=UsersType.STANDARD,
-            tags=["sample"],
-            metadata={"id": item_id},
-            created_at=datetime.utcnow() - timedelta(days=1),
-            created_by=current_user,
-            version=1
+        # Get data through service layer
+        service = UsersService(db)
+        items = await service.get_filtered_userss(
+            filters=filters,
+            include_analytics=include_analytics,
+            page=page,
+            per_page=per_page
         )
         
-        logger.info(f"Successfully fetched users {item_id}")
-        return response
+        logger.info(f"Retrieved {len(items)} userss for user {current_user.id}")
+        return items
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching users: {str(e)}")
+        logger.error(f"Error retrieving userss: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving data")
 
 @router.post(
     "/",
     response_model=UsersResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create new users",
-    description="Create a new users with the provided data"
+    description="Create new users with AI tutor integration"
 )
 async def create_users(
     request: UsersCreate,
-    current_user: str = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Create new users"""
+    """Create new users with Mrs-Unkwn features"""
     try:
-        logger.info(f"Creating new users for user {current_user}: {request.name}")
+        # Check parental controls if this is for a student
+        if request.student_id:
+            allowed = await check_parental_controls(
+                request.student_id, 
+                "create_users",
+                db
+            )
+            if not allowed:
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Action blocked by parental controls"
+                )
         
-        # TODO: Implement actual database creation
-        # Mock response for now
-        new_id = 12345  # Mock generated ID
+        # Verify family membership
+        if not await verify_family_access(request.family_id, current_user, db):
+            raise HTTPException(status_code=403, detail="Family access required")
         
-        response = UsersResponse(
-            id=new_id,
-            **request.dict(),
-            created_at=datetime.utcnow(),
-            created_by=current_user,
-            version=1
+        # Create through service layer
+        service = UsersService(db)
+        new_item = await service.create_users(request, current_user.id)
+        
+        # Initialize AI tutor if enabled
+        if request.ai_interaction_enabled:
+            ai_service = AITutorService()
+            await ai_service.initialize_for_users(new_item.id)
+        
+        # Log creation activity
+        await log_learning_activity(
+            current_user.id,
+            "create_users",
+            {"item_id": new_item.id, "name": request.name},
+            background_tasks
         )
         
-        logger.info(f"Successfully created users {new_id}")
-        return response
+        logger.info(f"Created users {new_item.id} for user {current_user.id}")
+        return new_item
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error creating users: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error creating users: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error creating resource")
 
-@router.put(
-    "/{item_id}",
-    response_model=UsersResponse,
-    summary="Update users",
-    description="Update an existing users with the provided data"
-)
-async def update_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to update"),
-    request: UsersUpdate = ...,
-    current_user: str = Depends(get_current_user)
-):
-    """Update users by ID"""
-    try:
-        logger.info(f"Updating users {item_id} for user {current_user}")
-        
-        # TODO: Implement actual database update
-        # Check if item exists first
-        if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
-        
-        # Mock response for now
-        response = UsersResponse(
-            id=item_id,
-            name=request.name or f"Updated Users {item_id}",
-            description=request.description or f"Updated description for users {item_id}",
-            status=request.status or UsersStatus.ACTIVE,
-            type=request.type or UsersType.STANDARD,
-            tags=request.tags or ["updated"],
-            metadata=request.metadata or {"updated": True},
-            created_at=datetime.utcnow() - timedelta(days=1),
-            updated_at=datetime.utcnow(),
-            created_by="original_user",
-            updated_by=current_user,
-            version=2
-        )
-        
-        logger.info(f"Successfully updated users {item_id}")
-        return response
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error updating users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error updating users: {str(e)}")
-
-@router.patch(
-    "/{item_id}",
-    response_model=UsersResponse,
-    summary="Partially update users",
-    description="Partially update an existing users with only the provided fields"
-)
-async def patch_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to patch"),
-    request: UsersUpdate = ...,
-    current_user: str = Depends(get_current_user)
-):
-    """Partially update users by ID"""
-    try:
-        logger.info(f"Patching users {item_id} for user {current_user}")
-        
-        # TODO: Implement actual database patch
-        if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
-        
-        # Mock response - only update provided fields
-        updated_fields = {k: v for k, v in request.dict().items() if v is not None}
-        
-        response = UsersResponse(
-            id=item_id,
-            name=f"Patched Users {item_id}",
-            description=f"Patched description for users {item_id}",
-            status=UsersStatus.ACTIVE,
-            type=UsersType.STANDARD,
-            tags=["patched"],
-            metadata={"patched_fields": list(updated_fields.keys())},
-            created_at=datetime.utcnow() - timedelta(days=1),
-            updated_at=datetime.utcnow(),
-            created_by="original_user",
-            updated_by=current_user,
-            version=3
-        )
-        
-        logger.info(f"Successfully patched users {item_id} with fields: {list(updated_fields.keys())}")
-        return response
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error patching users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error patching users: {str(e)}")
-
-@router.delete(
-    "/{item_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete users",
-    description="Delete an existing users by its ID"
-)
-async def delete_users(
-    item_id: int = Path(..., gt=0, description="The ID of the users to delete"),
-    force: bool = Query(False, description="Force delete without moving to trash"),
-    current_user: str = Depends(get_current_user)
-):
-    """Delete users by ID"""
-    try:
-        logger.info(f"Deleting users {item_id} for user {current_user} (force={force})")
-        
-        # TODO: Implement actual database deletion
-        if item_id > 1000:
-            raise HTTPException(status_code=404, detail=f"Users not found")
-        
-        if force:
-            # Hard delete
-            logger.info(f"Force deleting users {item_id}")
-        else:
-            # Soft delete (mark as deleted)
-            logger.info(f"Soft deleting users {item_id}")
-        
-        logger.info(f"Successfully deleted users {item_id}")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error deleting users {item_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error deleting users: {str(e)}")
-
-# Additional utility endpoints
 @router.get(
-    "/stats",
-    response_model=UsersStats,
-    summary="Get users statistics",
-    description="Get comprehensive statistics about userss"
+    "/{item_id}",
+    response_model=UsersResponse,
+    summary="Get users by ID",
+    description="Get specific users with real-time monitoring data"
 )
-async def get_users_stats(
-    current_user: str = Depends(get_current_user)
+async def get_users(
+    item_id: str = Path(..., description="ID of the users"),
+    include_live_data: bool = Query(True, description="Include real-time monitoring data"),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Get users statistics"""
+    """Get users with Mrs-Unkwn monitoring integration"""
     try:
-        logger.info(f"Fetching users statistics for user {current_user}")
+        # Verify access
+        if not await verify_family_access(item_id, current_user, db):
+            raise HTTPException(status_code=403, detail="Access forbidden")
         
-        # TODO: Implement actual statistics calculation
-        stats = UsersStats(
-            total_count=1250,
-            active_count=1000,
-            inactive_count=150,
-            pending_count=75,
-            archived_count=20,
-            deleted_count=5,
-            by_type={
-                "standard": 800,
-                "premium": 300,
-                "enterprise": 100,
-                "custom": 50
-            },
-            created_today=15,
-            created_this_week=105,
-            created_this_month=420
+        # Get through service
+        service = UsersService(db)
+        item = await service.get_users_by_id(item_id, include_live_data)
+        
+        if not item:
+            raise HTTPException(status_code=404, detail="Users not found")
+        
+        # Check for any active anti-cheat alerts
+        if include_live_data:
+            anti_cheat_service = AntiCheatService()
+            alerts = await anti_cheat_service.get_active_alerts(item_id)
+            if alerts:
+                item.metadata["active_alerts"] = len(alerts)
+        
+        # Log access
+        await log_learning_activity(
+            current_user.id,
+            "view_users",
+            {"item_id": item_id},
+            background_tasks
         )
         
-        logger.info(f"Successfully calculated users statistics")
-        return stats
-        
-    except Exception as e:
-        logger.error(f"Error calculating users statistics: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error calculating statistics: {str(e)}")
-
-@router.post(
-    "/bulk",
-    response_model=List[UsersResponse],
-    summary="Bulk create userss",
-    description="Create multiple userss in a single request"
-)
-async def bulk_create_userss(
-    requests: List[UsersCreate],
-    current_user: str = Depends(get_current_user)
-):
-    """Bulk create userss"""
-    try:
-        logger.info(f"Bulk creating {len(requests)} userss for user {current_user}")
-        
-        if len(requests) > 100:
-            raise HTTPException(status_code=400, detail="Maximum 100 items allowed per bulk operation")
-        
-        # TODO: Implement actual bulk database creation
-        responses = []
-        for i, request in enumerate(requests):
-            response = UsersResponse(
-                id=10000 + i,
-                **request.dict(),
-                created_at=datetime.utcnow(),
-                created_by=current_user,
-                version=1
-            )
-            responses.append(response)
-        
-        logger.info(f"Successfully bulk created {len(responses)} userss")
-        return responses
+        return item
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error bulk creating userss: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error bulk creating userss: {str(e)}")
+        logger.error(f"Error retrieving users {item_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving resource")
 
+# Mrs-Unkwn specific endpoints
 @router.post(
-    "/search",
-    response_model=UsersList,
-    summary="Advanced search userss",
-    description="Perform advanced search across userss with complex criteria"
+    "/{item_id}/ai-interaction",
+    summary="AI Tutor Interaction",
+    description="Interact with AI tutor for this users"
 )
-async def search_userss(
-    search_query: Dict[str, Any],
-    pagination: dict = Depends(validate_pagination),
-    current_user: str = Depends(get_current_user)
+async def ai_tutor_interaction(
+    item_id: str = Path(...),
+    message: str = Field(..., min_length=1, max_length=2000),
+    interaction_type: str = Field(default="question"),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    """Advanced search for userss"""
+    """Handle AI tutor interaction with anti-cheat monitoring"""
     try:
-        logger.info(f"Advanced search for userss by user {current_user}: {search_query}")
+        # Verify access
+        if not await verify_family_access(item_id, current_user, db):
+            raise HTTPException(status_code=403, detail="Access forbidden")
         
-        # TODO: Implement actual advanced search logic
-        # Mock response for now
-        mock_items = [
-            UsersResponse(
-                id=i,
-                name=f"Search Result Users {i}",
-                description=f"Matched search criteria: {search_query}",
-                status=UsersStatus.ACTIVE,
-                type=UsersType.STANDARD,
-                tags=["search", "result"],
-                metadata={"search_score": 0.95 - (i * 0.1)},
-                created_at=datetime.utcnow() - timedelta(days=i),
-                created_by=current_user,
-                version=1
-            )
-            for i in range(1, 6)
-        ]
-        
-        response = UsersList(
-            items=mock_items,
-            total=5,
-            page=pagination["page"],
-            per_page=pagination["per_page"],
-            pages=1,
-            has_next=False,
-            has_prev=False
+        # Check for cheating patterns
+        anti_cheat_service = AntiCheatService()
+        is_suspicious = await anti_cheat_service.analyze_interaction(
+            user_id=current_user.id,
+            message=message,
+            context={"item_id": item_id, "type": interaction_type}
         )
         
-        logger.info(f"Advanced search returned {len(mock_items)} results")
+        if is_suspicious:
+            # Log suspicious activity and notify parents
+            await anti_cheat_service.handle_suspicious_activity(
+                current_user.id, 
+                "suspicious_ai_interaction", 
+                {"message": message[:100]}
+            )
+            
+        # Process through AI tutor with Socratic method
+        ai_service = AITutorService()
+        response = await ai_service.process_socratic_interaction(
+            item_id=item_id,
+            user_message=message,
+            user_id=current_user.id,
+            apply_pedagogy=True
+        )
+        
+        # Log interaction
+        await log_learning_activity(
+            current_user.id,
+            "ai_interaction",
+            {
+                "item_id": item_id,
+                "interaction_type": interaction_type,
+                "message_length": len(message),
+                "response_type": response.get("type", "unknown")
+            },
+            background_tasks
+        )
+        
         return response
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in advanced search: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error in search: {str(e)}")
+        logger.error(f"Error in AI interaction: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error processing AI interaction")
+
+@router.get(
+    "/{item_id}/learning-analytics",
+    summary="Get Learning Analytics",
+    description="Get comprehensive learning analytics for this users"
+)
+async def get_learning_analytics(
+    item_id: str = Path(...),
+    time_range: str = Query("week", regex="^(day|week|month|year)$"),
+    include_ai_insights: bool = Query(True),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get Mrs-Unkwn learning analytics with AI insights"""
+    try:
+        # Verify access
+        if not await verify_family_access(item_id, current_user, db):
+            raise HTTPException(status_code=403, detail="Access forbidden")
+        
+        # Get analytics through service
+        analytics_service = LearningAnalyticsService(db)
+        analytics = await analytics_service.get_comprehensive_analytics(
+            item_id=item_id,
+            time_range=time_range,
+            include_ai_insights=include_ai_insights
+        )
+        
+        return analytics
+        
+    except Exception as e:
+        logger.error(f"Error getting analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving analytics")
+
+@router.post(
+    "/{item_id}/parent-intervention",
+    summary="Parent Intervention",
+    description="Parent intervention actions for learning session"
+)
+async def parent_intervention(
+    item_id: str = Path(...),
+    action: str = Field(..., regex="^(pause|resume|block|allow|redirect)$"),
+    message: Optional[str] = Field(None, max_length=500),
+    current_user = Depends(get_current_parent),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    """Handle parent intervention in learning session"""
+    try:
+        # Verify parent access
+        if not await verify_family_access(item_id, current_user, db):
+            raise HTTPException(status_code=403, detail="Parent access required")
+        
+        # Execute intervention through service
+        service = UsersService(db)
+        result = await service.execute_parent_intervention(
+            item_id=item_id,
+            action=action,
+            message=message,
+            parent_id=current_user.id
+        )
+        
+        # Log intervention
+        await log_learning_activity(
+            current_user.id,
+            "parent_intervention",
+            {
+                "item_id": item_id,
+                "action": action,
+                "has_message": bool(message)
+            },
+            background_tasks
+        )
+        
+        return {"success": True, "action": action, "result": result}
+        
+    except Exception as e:
+        logger.error(f"Error in parent intervention: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error executing intervention")
