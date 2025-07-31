@@ -1,0 +1,12 @@
+{
+  "requests": [],
+  "pending_features": [
+    {
+      "id": 1,
+      "title": "User Authentication API",
+      "type": "api",
+      "priority": "high",
+      "description": "Create authentication endpoints for login/register"
+    }
+  ]
+}

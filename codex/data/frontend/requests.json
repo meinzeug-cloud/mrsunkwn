@@ -1,0 +1,12 @@
+{
+  "requests": [],
+  "pending_features": [
+    {
+      "id": 1,
+      "title": "User Authentication Component",
+      "type": "component",
+      "priority": "high",
+      "description": "Create a login/register component for user authentication"
+    }
+  ]
+}
